@@ -58,6 +58,15 @@ PN.BISECT_MAP = BMAP
 zone, info = PC.author_zone('../PC ff/mp_raid.zone', 'mp_raid',
                             pc_policy=RC.PC_POLICY, our_policy=RC.GEN_POLICY, verbose=False)
 PN.BISECT_MAP = None
+
+# HARNESS FIX (2026-07-13, Track 0): aliased-row hp words re-derived from the
+# GENUINE hp via the identity-proven relocator — the author's omap.reloc path
+# resolves them through converter interior fine-maps, which the resident-image
+# tracks legitimately diverged (broke rows 849/883/885/886/888 = FX NULL+0x14).
+# ALL also restores genuine's header b5 word (byte-identical acceptance).
+import spine_selfpolicy as SPINE
+genctx = SPINE.gen_context()
+zone, _nfix = SPINE.fix_hp_rows(zone, info, genctx, force_gen_b5=(arg == 'ALL'))
 open('mp_raid_authored.zone', 'wb').write(zone)
 PC.rewalk_zone(zone, 'bisect[%s]' % arg)
 print('zone %.2f MB  genuine %.2f MB' % (len(zone) / 1e6, len(CO) / 1e6))
