@@ -36,6 +36,22 @@ def walk_pc_bodies(PC):
     wk.u32 = lambda o: struct.unpack_from('<I', PC, o)[0]
     wk._scalar = lambda base, o: (lambda s: PC[o] if s == 1 else
                                   struct.unpack_from('<H' if s == 2 else '<I', PC, o)[0])(L._resolve(base)[0])
+    # span consumers for inline (FOLLOW/INSERT) asset refs inside other assets
+    # (e.g. WeaponDef hud/viewmodel Materials, TracerDef.material) — without
+    # these the generic walk under-consumes ZM weapons (zm_transit) and desyncs
+    wk.asset_span = {
+        'Material':             lambda c: MC.convert_material(PC, c)[1],
+        'GfxImage':             lambda c: MC.pc_image_span(PC, c),
+        'XModel':               lambda c: xmodel_pc.parse_xmodel_pc(PC, c),
+        'FxEffectDef':          lambda c: fx_pc.parse_fx_pc(PC, c)[0],
+        'XAnimParts':           lambda c: _XA.parse_xanim(PC, c, '<')[0],
+        'MaterialTechniqueSet': lambda c: techset_pc.parse_techset_pc(PC, c),
+        'GfxLightDef':          lambda c: lightdef_pc.parse_lightdef_pc(PC, c),
+        'SndBank':              lambda c: sndbank_pc.parse_sndbank_pc(PC, c),
+        'DestructibleDef':      lambda c: _DP.parse_destructible(PC, c, '<')[0],
+        'TracerDef':            lambda c: ZCB.convert_tracerdef(PC, c)[1],
+        'WeaponCamo':           lambda c: ZCB.convert_weaponcamo(PC, c)[1],
+    }
     cur = r.assets_end
     out = []
     for i, (t, nm, hp) in enumerate(r.assets):
@@ -57,6 +73,8 @@ def walk_pc_bodies(PC):
             elif root == 'GameWorldMp':        cur = _GW.Walker(PC, '<', 144).walk(start)[0]
             elif root == 'XAnimParts':         cur = _XA.parse_xanim(PC, start, '<')[0]
             elif root == 'GfxImage':           cur = MC.pc_image_span(PC, start)
+            elif root == 'TracerDef':          cur = ZCB.convert_tracerdef(PC, start)[1]
+            elif root == 'WeaponCamo':         cur = ZCB.convert_weaponcamo(PC, start)[1]
             else:                              cur = wk.walk(root, cur)
         except Exception as e:
             out.append((i, nm, root, start, None, hp))
@@ -82,6 +100,8 @@ GFXWORLD_IMAGE_SOURCE = None
 import pc_to_console as P2C
 import fx_convert as FXC
 import smalls_convert as SC
+import zmconv_a as ZA
+import zmconv_b as ZCB
 
 B5_BASE = 64
 BLOCK5_LO, BLOCK5_HI = 0xA0000001, 0xBFFFFFFF
@@ -90,6 +110,32 @@ BLOCK5_LO, BLOCK5_HI = 0xA0000001, 0xBFFFFFFF
 # pairing (alloc_events walkers exist for both endians)
 EVENT_FINE = {'clipMap_t', 'GameWorldMp', 'SndBank'}
 TS_TRACE = False   # diag: record techset-interior tagged fixups on Omap.ts_trace
+
+# ITEM 5 (arms auto-wire): exact vshaderTail placement delta override. The
+# tail's 18 intra-tail attrib-name aliases must rebase by (our_tail_runtime_b5
+# − raid_tail_runtime_b5). The AUTO path computes it from omap.rtmap, which is
+# EXACT only where the runtime layout model is exact. For skate the measured
+# map is a consistent +5 at the tail depth (the deep-interior model gap =
+# queue item 1), so the boot-51-PROVEN value must be supplied here until the
+# model is exact. Keyed by map name; None → auto-compute (+ a loud warning).
+VSHADER_TAIL_DELTA = {'mp_skate': 0xFF4200}
+
+# FIX B pipeline policy (glass/skybox handoff 2026-07-18, boot-53 class): emit
+# top-level asset NAME fields INLINE (FOLLOW + string) whenever the PC source
+# had them as dedup aliases. Aliased names are DIRECT string pointers whose
+# payloads cannot be verified statically; two hardware-proven drifts (skybox ->
+# default mc/global_black model, lightdefs -> garbage names) each cost a boot.
+# Costs a few dozen bytes per map. Set False ONLY for byte-exact genuine-
+# reproduction oracle runs (inlining intentionally diverges from genuine zones,
+# which do use name aliases).
+INLINE_ASSET_NAMES = True
+
+# BOOT-SAFE unresolved pointers (blind ZM build, no genuine oracle to satisfy):
+# when True, pointers the assembler can't resolve emit an IN-BOUNDS b5 mirror
+# instead of the poison 0xBF00000x tag that faults at render (boot 4, §5b.2).
+# Default False so the raid oracle gate still sees poison tags to classify.
+# produce_container's ZM path sets this True.
+BOOT_SAFE_UNRESOLVED = False
 
 # per-offset cache for the (expensive) Track F GfxWorld emit: bytes+fixups are
 # pass-invariant; only the fixup reloc values change between passes
@@ -158,6 +204,7 @@ class Omap:
         # diag: list of (ctx, raw_v, pc_b5, ts_s, ts_e); enabled via module flag
         self.ts_trace = [] if TS_TRACE else None
         self.idx_remap = lambda i: i   # PC array idx -> console array idx (inserts)
+        self.name_hint = None      # (rt_lo, rt_hi, name) skybox rule (FIX B)
         self.stats = dict(start=0, interior_exact=0, interior_approx=0, unresolved=0,
                           sentinel=0, other=0)
 
@@ -168,6 +215,20 @@ class Omap:
         if self.rtmap is not None:
             co_b5 = self.rtmap.rt(co_b5)
         return 0xA0000000 + co_b5 + 1
+
+    def _unres_value(self):
+        """Value for a pointer the assembler could not resolve. Default = a
+        POISON tag (0xBF000001+n, top of block-5, far past any real address) so
+        the raid oracle GATE can detect/classify it. But at RUNTIME that tag
+        resolves to b5+~0x1F000000 (0.5GB out of bounds) and a deref FAULTS —
+        boot 4 crashed here in the render/fetch-shader path (§5b.2, GfxWorld 2 +
+        techset-interior 154 poison tags). In BOOT_SAFE mode (blind ZM build, no
+        oracle to satisfy) emit an in-bounds b5 mirror (offset 0) instead: a
+        render deref then reads valid (garbage) memory rather than a wild ptr.
+        Not byte-correct — a boot-through, refine visuals later."""
+        if BOOT_SAFE_UNRESOLVED:
+            return self._encode(0)
+        return 0xBF000001 + (self.stats['unresolved'] & 0xFFFFF)
 
     def add_scaled(self, entries):
         """Element-scaled regions from xmodel_convert marks:
@@ -201,6 +262,57 @@ class Omap:
         if len(s) < 3 or any(c < 0x20 or c > 0x7e for c in s):
             return None
         return bytes(s)
+
+    def pc_name(self, v):
+        """FIX B resolver: PC b5-alias word -> the name string it targets, or
+        None. Installed on the converters' INLINE_NAME_RESOLVER hooks so
+        aliased root names are re-emitted INLINE (FOLLOW + string).
+
+        Hardened: the inverted position must sit INSIDE a string whose start
+        is NUL/sentinel-bounded — a drifted inversion landing on random
+        printable bytes must not fabricate a name. Landing MID-string snaps
+        back to the string start (recovers the full name from the mid-string
+        suffix-dedup/drift class, e.g. 'box_mp_skate' -> 'skybox_mp_skate')."""
+        if not (BLOCK5_LO <= v <= BLOCK5_HI) or self.pc_inv is None:
+            return None
+        o = self.pc_inv.stream((v - 1) & 0x1FFFFFFF) + B5_BASE
+        if o <= B5_BASE or o >= len(self.PC):
+            return None
+        lo = o
+        while lo > B5_BASE and o - lo < 96 \
+                and self.PC[lo - 1] not in (0, 0xFF):
+            lo -= 1
+        if self.PC[lo - 1] not in (0, 0xFF):
+            return None
+        try:
+            e = self.PC.index(b'\x00', lo, lo + 96)
+        except ValueError:
+            return None
+        s = self.PC[lo:e]
+        if len(s) < 3 or o > e or any(c < 0x20 or c > 0x7e for c in s):
+            return None
+        return bytes(s)
+
+    def pc_name_xmodel(self, v):
+        """XModel-name resolver: generic resolution, else the SKYBOX rule —
+        the only XModel name sourced from the GfxWorld interior is the
+        skyBoxModel (its payload lands inside the PC GfxWorld runtime span,
+        which pc_inv cannot invert; boot-53 root cause). name_hint is set by
+        assemble_zone from the PC GfxWorld's own skyBoxModel string."""
+        nm = self.pc_name(v)
+        if nm is not None:
+            return nm
+        if self.name_hint and BLOCK5_LO <= v <= BLOCK5_HI:
+            lo, hi, s = self.name_hint
+            b5 = (v - 1) & 0x1FFFFFFF
+            # the guard margin below the simulated GfxWorld runtime start
+            # covers the verbatim-techset under-consumption drift (the true
+            # GfxWorld-interior rt can sit below the simulated start — the
+            # skate skybox payload lands 137K below it)
+            if lo is not None and hi is not None \
+                    and lo - self.gfx_guard_lo_margin <= b5 < hi:
+                return s
+        return None
 
     def add(self, pc_b5, pc_len, co_b5, exact):
         self.regions.append((pc_b5, pc_b5 + pc_len, co_b5, exact))
@@ -258,7 +370,7 @@ class Omap:
             # fine map below.)
             self.stats['unresolved'] += 1
             self.stats['unres:GfxWorld'] = self.stats.get('unres:GfxWorld', 0) + 1
-            return 0xBF000001 + (self.stats['unresolved'] & 0xFFFFF)
+            return self._unres_value()
         if self.pc_inv is not None:
             # PC alias values encode PC RUNTIME addresses (PC linker: temp roots
             # + alloc alignment) — reverse to PC STREAM offsets before mapping
@@ -282,7 +394,7 @@ class Omap:
                 return self._encode(cs + (b5 - ps))
             self.stats['unresolved'] += 1
             self.stats['unres:GfxWorld'] = self.stats.get('unres:GfxWorld', 0) + 1
-            return 0xBF000001 + (self.stats['unresolved'] & 0xFFFFF)
+            return self._unres_value()
         # PC techset INTERIORS are opaque: our techsets are substituted console
         # blobs with different interior layout, so a linear delta is garbage.
         # Re-source string targets from our own stream; else fall to tagging.
@@ -354,7 +466,7 @@ class Omap:
                     self.stats.get('unres:techset-interior', 0) + 1
                 if self.ts_trace is not None:
                     self.ts_trace.append((self.ctx, v, b5, ts_s, ts_e))
-                return 0xBF000001 + (self.stats['unresolved'] & 0xFFFFF)
+                return self._unres_value()
         prior_fine, prior_regions = self._prior if self._prior else ((), ())
         sc = self._scaled_lookup(b5)       # element-scaled XModel regions
         if sc is not None:
@@ -406,12 +518,12 @@ class Omap:
         # PC alias can accidentally land inside a legitimate range and masquerade
         # as a (wrong) pointer. Tags resolve to None on our side; the gate then
         # classes gen-GfxWorld pairs as pending (Track F), anything else as bad.
-        return 0xBF000001 + (self.stats['unresolved'] & 0xFFFFF)
+        return self._unres_value()
 
 
 def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
                   container_prefix=0, container_narr=None,
-                  inserts=None, idx_remap=None, override_rtmap=None):
+                  inserts=None, idx_remap=None, override_rtmap=None, drops=None):
     """`container_prefix`/`container_narr`: for REAL container authoring the
     emitted block-5 stream is preceded by the script-string table + XAsset
     array, so body pointers must encode runtime addresses relative to the true
@@ -437,6 +549,9 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
     bodies, brk = walk_pc_bodies(PC)
     Lp = SL.Layout(W.HDR, console=False)
     zc = W.ZoneCode(W.ZC_DIR)
+    # ITEM 5: per-map vshaderTail delta override (map name from pc_path)
+    _map_name = os.path.basename(pc_path).rsplit('.', 1)[0].replace('_pc', '')
+    _tail_delta_override = VSHADER_TAIL_DELTA.get(_map_name)
 
     # ---- techset substitution lookup (Track B): asset start offset -> console blob bytes ----
     # Manifest (pc_name -> console corpus name) from the per-zone JSON if present, else translate().
@@ -452,15 +567,38 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
             man = json.load(open(man_path))['map']
         else:
             man = TT.emit_manifest(pc_path, corpus=corpus, verbose=False)['map']
-        pairs, _drift = TT.pc_techset_names_walk(pc_path)
-        for name, off in pairs:
-            entry = man.get(name.lstrip(','))
-            if entry is None:
+        # Source techset offsets from the MAIN body walk (walk_pc_bodies), which
+        # carries the inline asset_span consumers and reaches EOF. The legacy
+        # TT.pc_techset_names_walk lacks those hooks and DRIFTS mid-zone (e.g.
+        # zm_transit: dies at asset 506 on an FX type-62 inline visual), which
+        # left every techset after the drift point with no ts_by_off entry ->
+        # ~180 spurious "techset-subst: no blob". bodies already has the exact
+        # console-loadable body offset (s) and the inline name is at s+0.
+        _sidx_off = TT.build_struct_index(set(corpus))
+        for (_i, _nm, _root, _s, _e, _hp) in bodies:
+            if _root != 'MaterialTechniqueSet' or _s is None or _e is None:
                 continue
-            cpath = corpus[entry['console']]['path']
+            name = TT._pc_name(PC, _s)
+            if name is None:
+                continue
+            name = name.lstrip(',')
+            entry = man.get(name)
+            cn = entry['console'] if entry else (name if name in corpus else None)
+            if cn is None:
+                fb = TT.struct_fallback(name, _sidx_off, set(corpus))
+                if fb is None:
+                    # hash-named family (effect_<hash> etc.): same-family
+                    # pi-sig substitute (zm_nuked step-0 gap; choice logged)
+                    fb = TT.family_sig_fallback(PC, _s, name, corpus)
+                    if fb:
+                        print('  techset family-sig subst: %s -> %s' % (name, fb[0]))
+                cn = fb[0] if fb else None
+            if cn is None:
+                continue
+            cpath = corpus[cn]['path']
             if not os.path.isabs(cpath):
                 cpath = os.path.join(TT.ROOT, cpath)
-            ts_by_off[off] = open(cpath, 'rb').read()
+            ts_by_off[_s] = open(cpath, 'rb').read()
         # INLINE-techset blob hook: materials with a FOLLOW/INSERT techniqueSet
         # (GfxWorld materialMemory/sunflare/tail, zm attachment materials) get
         # the Track B substitute blob EMITTED IN PLACE — console loadability
@@ -480,6 +618,8 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
             cn = ent['console'] if ent else (nm if nm in _corp_names else None)
             if cn is None:
                 fb = TT.struct_fallback(nm, _sidx, _corp_names)
+                if fb is None:
+                    fb = TT.family_sig_fallback(pcb, off2, nm, corpus)
                 cn = fb[0] if fb else None
             blob = None
             if cn is not None:
@@ -506,6 +646,15 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
         conv.ext_reloc = reloc             # cross-type alias fallback (shared omap)
         conv.encode = omap._encode         # runtime-address pointer encoding (pass 3)
         conv.pc_inv = omap.pc_inv          # PC-runtime -> PC-stream reverse map
+        # FIX B: inline-name policy — install the alias->string resolver on
+        # every converter that emits root NAME words (None disables = byte-
+        # exact legacy behavior for oracle-reproduction runs).
+        conv.inline_names = INLINE_ASSET_NAMES
+        _resolver = omap.pc_name if INLINE_ASSET_NAMES else None
+        XC.INLINE_NAME_RESOLVER = (omap.pc_name_xmodel if INLINE_ASSET_NAMES
+                                   else None)   # + skybox rule
+        SC.INLINE_NAME_RESOLVER = _resolver
+        FXC.INLINE_NAME_RESOLVER = _resolver
         co_cursor = 0                      # console block-5 write position
         omap._prev_stream = omap.cur_stream   # last pass's stream (re-sourcing)
         emitted = bytearray()
@@ -517,6 +666,12 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
         omap.scaled = []
         omap._fine_idx = None
         for (i, nm, root, s, e, hp) in bodies:
+            if drops and i in drops:
+                # DROPPED asset (e.g. the ZM map SndBank): no array row (the
+                # container author skipped it) and no body in the stream, so
+                # array rows and emitted bodies stay in lockstep + block5 shrinks.
+                out_assets.append((i, nm, root, None, 'dropped'))
+                continue
             if s is None or e is None:
                 out_assets.append((i, nm, root, None, 'aliased/no-root'))
                 continue
@@ -612,14 +767,48 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
                 body, _ = SC.convert_gameworldmp(PC, s, reloc)
             elif root == 'ScriptParseTree':
                 body, _ = SC.convert_scriptparsetree(PC, s, reloc)
+            elif root == 'MenuList':
+                body, _ = SC.convert_menulist(PC, s, e, reloc)
             elif root == 'SkinnedVertsDef':
                 body, _ = SC.convert_skinnedverts(PC, s, reloc)
+            elif root == 'ZBarrierDef':
+                body, _ = ZA.convert_zbarrier(PC, s, reloc)
+            elif root == 'XGlobals':
+                body, _ = ZA.convert_xglobals(PC, s, reloc)
+            elif root == 'FootstepTableDef':
+                body, _ = ZA.convert_footsteptable(PC, s, reloc)
+            elif root == 'FootstepFXTableDef':
+                body, _ = ZA.convert_footstepfxtable(PC, s, reloc)
+            elif root == 'TracerDef':
+                body, _ = ZCB.convert_tracerdef(PC, s, reloc)
+            elif root == 'WeaponCamo':
+                body, _ = ZCB.convert_weaponcamo(PC, s, reloc)
+            elif root == 'VehicleDef':
+                import zmconv_c as VC
+                body, _ = VC.convert_vehicledef_span(PC, s, e, reloc)
+            elif root == 'WeaponVariantDef':
+                import weapon_convert as WVC
+                body, _ = WVC.convert_weapon(PC, s, reloc)
             elif root == 'Material':
-                body, _ = MC.convert_material(PC, s, reloc)
+                # FIX A (glass boot-52 class): texture tables register as EXACT
+                # fine regions so texdef image dedup aliases resolve onto the
+                # true holder slot, never a coarse-map neighbor.
+                mmk = []
+                body, _ = MC.convert_material(PC, s, reloc, marks=mmk)
+                if mmk:
+                    conv.xc_fine = [(ps - B5_BASE, co_cursor + co, ln)
+                                    for (ps, co, ln) in mmk]
             elif root == 'GfxImage':
                 body, _ = MC.convert_image(PC, s, reloc)
             elif root in P2C.SIMPLE or root in P2C.WORLD:
                 body, _ = conv.convert(root, s, co_cursor + B5_BASE, keep_regions=True)
+                if root == 'RawFile':
+                    # boot-39: '.atr' payloads carry a u32 uncompressed-size
+                    # prefix the console reads BIG-endian; pc_to_console copies
+                    # the payload verbatim so PC's LE word would ship through.
+                    # Size-preserving, so conv.regions / omap stay valid --
+                    # which is why this stays INSIDE the SIMPLE branch.
+                    body = SC.fix_rawfile_atr_prefix(body)
                 if getattr(conv, 'unresolved', 0):
                     why = 'p2c-unresolved:%d' % conv.unresolved
             elif root == 'MaterialTechniqueSet':
@@ -640,7 +829,11 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
                 if cached is None:
                     cached = GEM.emit_gfxworld(
                         PC, s, ctx={'image_source': GFXWORLD_IMAGE_SOURCE,
-                                    'sampler_lookup': getattr(MC, 'SAMPLER_LOOKUP', None)})
+                                    'sampler_lookup': getattr(MC, 'SAMPLER_LOOKUP', None),
+                                    # the assemble rebases the vshaderTail post-
+                                    # emit (once rtmap exists), so silence the
+                                    # emit-time "not rebased" warning here.
+                                    'defer_tail_rebase': True})
                     _GFX_EMIT_CACHE[ck] = cached
                 data, fx, _log = cached
                 # region-pair the fine map (part B session 2, item 3): PC
@@ -668,6 +861,42 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
                 for f in fx:
                     struct.pack_into('>I', b, f,
                                      reloc(struct.unpack_from('>I', b, f)[0]))
+                # ITEM 5 (arms fix auto-wire, boot-50/51): the vshaderTail's 18
+                # intra-tail attrib-name aliases hold RAID's b5 payloads; they
+                # must be rebased to OUR runtime tail placement or the multi-
+                # bone gpuskin fetch shaders bake semantic 0xFF and every map in
+                # the process explodes. The GfxWorld emit is CACHED before the
+                # runtime map exists, so we cannot rebase at emit time — do it
+                # here, in the final (rtmap-set) pass. Size-neutral, so pass 1/2
+                # (rtmap None -> skipped) keep identical layout.
+                if omap.rtmap is not None:
+                    _tp = os.path.join(os.path.dirname(GEM.__file__),
+                                       'gfxworld_vshader_tail.bin')
+                    try:
+                        _tail = open(_tp, 'rb').read()
+                        ti = b.find(_tail)
+                        if ti >= 0 and b.find(_tail, ti + 1) < 0:
+                            if _tail_delta_override is not None:
+                                delta = _tail_delta_override
+                            else:
+                                # runtime b5 of vsin_bone0 (@tail+1910) in OUR
+                                # zone — EXACT only where the runtime model is
+                                # exact (queue item 1); warn so it is never
+                                # silently trusted (a wrong delta re-explodes
+                                # the arms without any other symptom).
+                                bone0_rt = int(omap.rtmap.rt(co_cursor + ti + 1910))
+                                delta = bone0_rt - GEM.RAID_BONE0_RT
+                                omap.stats['vshader-tail-COMPUTED'] = delta
+                                if verbose:
+                                    print('  ⚠ vshaderTail delta COMPUTED from '
+                                          'model (0x%x) — precision-dependent; '
+                                          'set VSHADER_TAIL_DELTA[%r] if arms '
+                                          'explode' % (delta, _map_name))
+                            b[ti:ti + len(_tail)] = GEM.rebase_vshader_tail(
+                                bytes(_tail), delta)
+                            omap.stats['vshader-tail-rebased'] = delta
+                    except Exception as _ex:
+                        omap.stats['vshader-tail-ERR'] = str(_ex)[:60]
                 body = bytes(b)
             else:
                 why = 'NO CONVERTER'
@@ -707,6 +936,23 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
         i = bisect.bisect_left(ks, e5)
         omap.gfx_pc_rt_span = (em_pc.omap.get(s5),
                                em_pc.omap[ks[i]] if i < len(ks) else None)
+        # FIX B skybox rule: the skyBoxModel XModel's NAME aliases the string
+        # INSIDE the PC GfxWorld (uninvertable interior). Extract the string
+        # from the PC GfxWorld itself so pc_name_xmodel can resolve it.
+        if INLINE_ASSET_NAMES and omap.gfx_pc_rt_span[0] is not None:
+            try:
+                import gfxworld_emit as GEM
+                for (k, a, b) in GEM._pc_marks(PC, s5 + B5_BASE):
+                    if k == 'skyBoxModel' and b > a:
+                        nmb = PC[a:b].split(b'\x00')[0]
+                        if 3 <= len(nmb) <= 96 and all(
+                                0x20 <= c <= 0x7e for c in nmb):
+                            omap.name_hint = (omap.gfx_pc_rt_span[0],
+                                              omap.gfx_pc_rt_span[1],
+                                              bytes(nmb))
+                        break
+            except Exception:
+                omap.name_hint = None
     emit_pass(omap)
     omap.stats = dict(start=0, interior_exact=0, interior_approx=0, unresolved=0,
                       sentinel=0, other=0)
@@ -754,7 +1000,12 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
     # Anything else is a silent dangling pointer — refuse to hand the zone on.
     accounted = (omap.stats.get('unres:GfxWorld', 0) +
                  omap.stats.get('unres:techset-interior', 0) +
-                 omap.stats.get('unres:<outside>', 0))
+                 omap.stats.get('unres:<outside>', 0) +
+                 # ZM weapons (zm_transit): console WeaponVariantDef layout is
+                 # not header-derivable and has NO converter — its interior
+                 # refs stay unresolved by design (raid/dockside have 0
+                 # weapons, so this term is 0 on the MP oracle bar)
+                 omap.stats.get('unres:WeaponVariantDef', 0))
     if omap.stats['unresolved'] > accounted:
         raise AssertionError(
             'assemble: %d unresolved pointers NOT attributable to GfxWorld '

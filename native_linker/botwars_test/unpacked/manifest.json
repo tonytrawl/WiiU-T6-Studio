@@ -1,0 +1,5827 @@
+{
+ "source": "patch_mp_LIVE_771e67b1.ff",
+ "ff_name": "patch_mp",
+ "decompressed_size": 14715202,
+ "assets_end": 16865,
+ "asset_count": 1533,
+ "inventory": {
+  "PHYSPRESET": 4,
+  "PHYSCONSTRAINTS": 1,
+  "TECHNIQUE_SET": 66,
+  "MATERIAL": 447,
+  "IMAGE": 48,
+  "MENULIST": 1,
+  "STRINGTABLE": 38,
+  "FX": 30,
+  "SCRIPTPARSETREE": 274,
+  "XMODEL": 41,
+  "DESTRUCTIBLEDEF": 6,
+  "RAWFILE": 474,
+  "KEYVALUEPAIRS": 1,
+  "FONTICON": 1,
+  "XANIMPARTS": 10,
+  "DDL": 13,
+  "LEADERBOARD": 72,
+  "WEAPON_CAMO": 1,
+  "TRACER": 1,
+  "WEAPON": 1,
+  "ATTACHMENT": 1,
+  "SOUND": 1,
+  "SOUND_PATCH": 1
+ },
+ "individualized_rawfiles": 724,
+ "assets": [
+  {
+   "name": "buttons_charlie.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 158213,
+   "size": 1247,
+   "file": "assets/buttons_charlie.cfg"
+  },
+  {
+   "name": "buttons_default.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 159493,
+   "size": 34,
+   "file": "assets/buttons_default.cfg"
+  },
+  {
+   "name": "buttons_default_alt.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 159564,
+   "size": 1284,
+   "file": "assets/buttons_default_alt.cfg"
+  },
+  {
+   "name": "buttons_experimental.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 160886,
+   "size": 37,
+   "file": "assets/buttons_experimental.cfg"
+  },
+  {
+   "name": "buttons_experimental_alt.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 160965,
+   "size": 1289,
+   "file": "assets/buttons_experimental_alt.cfg"
+  },
+  {
+   "name": "buttons_lefty.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 162285,
+   "size": 30,
+   "file": "assets/buttons_lefty.cfg"
+  },
+  {
+   "name": "buttons_lefty_alt.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 162350,
+   "size": 1282,
+   "file": "assets/buttons_lefty_alt.cfg"
+  },
+  {
+   "name": "buttons_nomad.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 163663,
+   "size": 30,
+   "file": "assets/buttons_nomad.cfg"
+  },
+  {
+   "name": "buttons_nomad_alt.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 163728,
+   "size": 1198,
+   "file": "assets/buttons_nomad_alt.cfg"
+  },
+  {
+   "name": "default_480p.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 164956,
+   "size": 277,
+   "file": "assets/default_480p.cfg"
+  },
+  {
+   "name": "default_720p.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 165263,
+   "size": 275,
+   "file": "assets/default_720p.cfg"
+  },
+  {
+   "name": "default_mp.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 165566,
+   "size": 147,
+   "file": "assets/default_mp.cfg"
+  },
+  {
+   "name": "default_mp_gamesettings.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 165754,
+   "size": 1887,
+   "file": "assets/default_mp_gamesettings.cfg"
+  },
+  {
+   "name": "default_mp_gametypes.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 167679,
+   "size": 546,
+   "file": "assets/default_mp_gametypes.cfg"
+  },
+  {
+   "name": "default_private.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 168258,
+   "size": 272,
+   "file": "assets/default_private.cfg"
+  },
+  {
+   "name": "default_splitscreen.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 168567,
+   "size": 960,
+   "file": "assets/default_splitscreen.cfg"
+  },
+  {
+   "name": "default_statversion.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 169564,
+   "size": 50,
+   "file": "assets/default_statversion.cfg"
+  },
+  {
+   "name": "default_systemlink.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 169650,
+   "size": 1153,
+   "file": "assets/default_systemlink.cfg"
+  },
+  {
+   "name": "default_xboxlive.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 170837,
+   "size": 2782,
+   "file": "assets/default_xboxlive.cfg"
+  },
+  {
+   "name": "dvar_defaults.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 173650,
+   "size": 652,
+   "file": "assets/dvar_defaults.cfg"
+  },
+  {
+   "name": "hardcore_disable.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 174336,
+   "size": 295,
+   "file": "assets/hardcore_disable.cfg"
+  },
+  {
+   "name": "hardcore_settings.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 174666,
+   "size": 310,
+   "file": "assets/hardcore_settings.cfg"
+  },
+  {
+   "name": "mp/coop_challenges_reset.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 175044,
+   "size": 3475,
+   "file": "assets/mp__coop_challenges_reset.cfg"
+  },
+  {
+   "name": "mp/default_emblems.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 178555,
+   "size": 5116,
+   "file": "assets/mp__default_emblems.cfg"
+  },
+  {
+   "name": "mp/gamesettings_bwars.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 183710,
+   "size": 536,
+   "file": "assets/mp__gamesettings_bwars.cfg"
+  },
+  {
+   "name": "mp/gamesettings_conf.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 184284,
+   "size": 174,
+   "file": "assets/mp__gamesettings_conf.cfg"
+  },
+  {
+   "name": "mp/gamesettings_ctf.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 184495,
+   "size": 503,
+   "file": "assets/mp__gamesettings_ctf.cfg"
+  },
+  {
+   "name": "mp/gamesettings_default.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 185039,
+   "size": 4709,
+   "file": "assets/mp__gamesettings_default.cfg"
+  },
+  {
+   "name": "mp/gamesettings_dem.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 189785,
+   "size": 869,
+   "file": "assets/mp__gamesettings_dem.cfg"
+  },
+  {
+   "name": "mp/gamesettings_dm.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 190690,
+   "size": 239,
+   "file": "assets/mp__gamesettings_dm.cfg"
+  },
+  {
+   "name": "mp/gamesettings_dom.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 190966,
+   "size": 332,
+   "file": "assets/mp__gamesettings_dom.cfg"
+  },
+  {
+   "name": "mp/gamesettings_gun.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 191335,
+   "size": 638,
+   "file": "assets/mp__gamesettings_gun.cfg"
+  },
+  {
+   "name": "mp/gamesettings_hack.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 192011,
+   "size": 995,
+   "file": "assets/mp__gamesettings_hack.cfg"
+  },
+  {
+   "name": "mp/gamesettings_hq.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 193042,
+   "size": 605,
+   "file": "assets/mp__gamesettings_hq.cfg"
+  },
+  {
+   "name": "mp/gamesettings_hun.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 193684,
+   "size": 529,
+   "file": "assets/mp__gamesettings_hun.cfg"
+  },
+  {
+   "name": "mp/gamesettings_koth.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 194251,
+   "size": 488,
+   "file": "assets/mp__gamesettings_koth.cfg"
+  },
+  {
+   "name": "mp/gamesettings_oic.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 194776,
+   "size": 653,
+   "file": "assets/mp__gamesettings_oic.cfg"
+  },
+  {
+   "name": "mp/gamesettings_pur.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 195466,
+   "size": 326,
+   "file": "assets/mp__gamesettings_pur.cfg"
+  },
+  {
+   "name": "mp/gamesettings_res.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 195829,
+   "size": 629,
+   "file": "assets/mp__gamesettings_res.cfg"
+  },
+  {
+   "name": "mp/gamesettings_sab.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 196495,
+   "size": 404,
+   "file": "assets/mp__gamesettings_sab.cfg"
+  },
+  {
+   "name": "mp/gamesettings_sas.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 196936,
+   "size": 796,
+   "file": "assets/mp__gamesettings_sas.cfg"
+  },
+  {
+   "name": "mp/gamesettings_sd.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 197768,
+   "size": 862,
+   "file": "assets/mp__gamesettings_sd.cfg"
+  },
+  {
+   "name": "mp/gamesettings_shrp.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 198668,
+   "size": 655,
+   "file": "assets/mp__gamesettings_shrp.cfg"
+  },
+  {
+   "name": "mp/gamesettings_tag.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 199360,
+   "size": 245,
+   "file": "assets/mp__gamesettings_tag.cfg"
+  },
+  {
+   "name": "mp/gamesettings_tdef.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 199643,
+   "size": 286,
+   "file": "assets/mp__gamesettings_tdef.cfg"
+  },
+  {
+   "name": "mp/gamesettings_tdm.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 199966,
+   "size": 104,
+   "file": "assets/mp__gamesettings_tdm.cfg"
+  },
+  {
+   "name": "mp/playerstats_prestige_reset.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 200117,
+   "size": 645,
+   "file": "assets/mp__playerstats_prestige_reset.cfg"
+  },
+  {
+   "name": "mp/playerstats_reset.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 200800,
+   "size": 1356,
+   "file": "assets/mp__playerstats_reset.cfg"
+  },
+  {
+   "name": "mp/prestige_reset.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 202191,
+   "size": 1002,
+   "file": "assets/mp__prestige_reset.cfg"
+  },
+  {
+   "name": "mp/reset_classes.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 203227,
+   "size": 1509,
+   "file": "assets/mp__reset_classes.cfg"
+  },
+  {
+   "name": "mp/reset_classes_offline.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 204778,
+   "size": 682,
+   "file": "assets/mp__reset_classes_offline.cfg"
+  },
+  {
+   "name": "mp/reset_classes_unlocked.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 205503,
+   "size": 1446,
+   "file": "assets/mp__reset_classes_unlocked.cfg"
+  },
+  {
+   "name": "mp/reset_public_class_sets.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 206993,
+   "size": 852,
+   "file": "assets/mp__reset_public_class_sets.cfg"
+  },
+  {
+   "name": "mp/reset_other_class_sets.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 207888,
+   "size": 1708,
+   "file": "assets/mp__reset_other_class_sets.cfg"
+  },
+  {
+   "name": "mp/stats_init.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 209627,
+   "size": 1037,
+   "file": "assets/mp__stats_init.cfg"
+  },
+  {
+   "name": "ragdoll.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 210689,
+   "size": 9368,
+   "file": "assets/ragdoll.cfg"
+  },
+  {
+   "name": "thumbstick_default.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 220093,
+   "size": 617,
+   "file": "assets/thumbstick_default.cfg"
+  },
+  {
+   "name": "thumbstick_legacy.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 220745,
+   "size": 616,
+   "file": "assets/thumbstick_legacy.cfg"
+  },
+  {
+   "name": "thumbstick_legacysouthpaw.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 221404,
+   "size": 624,
+   "file": "assets/thumbstick_legacysouthpaw.cfg"
+  },
+  {
+   "name": "thumbstick_southpaw.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222065,
+   "size": 618,
+   "file": "assets/thumbstick_southpaw.cfg"
+  },
+  {
+   "name": "viewsensitivity_high.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222721,
+   "size": 29,
+   "file": "assets/viewsensitivity_high.cfg"
+  },
+  {
+   "name": "viewsensitivity_low.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222787,
+   "size": 29,
+   "file": "assets/viewsensitivity_low.cfg"
+  },
+  {
+   "name": "viewsensitivity_med.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222853,
+   "size": 27,
+   "file": "assets/viewsensitivity_med.cfg"
+  },
+  {
+   "name": "viewsensitivity_ultra.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222919,
+   "size": 27,
+   "file": "assets/viewsensitivity_ultra.cfg"
+  },
+  {
+   "name": "blackbox.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 222972,
+   "size": 16,
+   "file": "assets/blackbox.cfg"
+  },
+  {
+   "name": "blackbox_low.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 223018,
+   "size": 178,
+   "file": "assets/blackbox_low.cfg"
+  },
+  {
+   "name": "classic_config_zero.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 223233,
+   "size": 676,
+   "file": "assets/classic_config_zero.cfg"
+  },
+  {
+   "name": "wiiu_remote_preset_greenhorn.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 223955,
+   "size": 1536,
+   "file": "assets/wiiu_remote_preset_greenhorn.cfg"
+  },
+  {
+   "name": "wiiu_remote_preset_advanced.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 225536,
+   "size": 1543,
+   "file": "assets/wiiu_remote_preset_advanced.cfg"
+  },
+  {
+   "name": "wiiu_remote_preset_insane.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 227122,
+   "size": 1543,
+   "file": "assets/wiiu_remote_preset_insane.cfg"
+  },
+  {
+   "name": "wiiu_remote_preset_intermediate.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 228714,
+   "size": 1539,
+   "file": "assets/wiiu_remote_preset_intermediate.cfg"
+  },
+  {
+   "name": "wiiu_remote_preset_professional.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 230302,
+   "size": 1546,
+   "file": "assets/wiiu_remote_preset_professional.cfg"
+  },
+  {
+   "name": "wiiu_dlc.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 231874,
+   "size": 4753,
+   "file": "assets/wiiu_dlc.txt"
+  },
+  {
+   "name": "ui/t6/drc/drcbase.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1601469,
+   "size": 1995,
+   "file": "assets/ui__t6__drc__drcbase.lua"
+  },
+  {
+   "name": "ui/t6/drc/drccontrolspanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1603508,
+   "size": 14608,
+   "file": "assets/ui__t6__drc__drccontrolspanel.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcdiscreteleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1618170,
+   "size": 11704,
+   "file": "assets/ui__t6__drc__drcdiscreteleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcexpandablebutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1629921,
+   "size": 11561,
+   "file": "assets/ui__t6__drc__drcexpandablebutton.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcmakeprimarypopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1641529,
+   "size": 1164,
+   "file": "assets/ui__t6__drc__drcmakeprimarypopup.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcoptionelement.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1642737,
+   "size": 2857,
+   "file": "assets/ui__t6__drc__drcoptionelement.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcoutput.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1645631,
+   "size": 5643,
+   "file": "assets/ui__t6__drc__drcoutput.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcpanelbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1651316,
+   "size": 11888,
+   "file": "assets/ui__t6__drc__drcpanelbutton.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1663240,
+   "size": 5080,
+   "file": "assets/ui__t6__drc__drcpopup.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcprofilediscreteleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1668381,
+   "size": 2283,
+   "file": "assets/ui__t6__drc__drcprofilediscreteleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcprofiletoggle.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1670708,
+   "size": 1357,
+   "file": "assets/ui__t6__drc__drcprofiletoggle.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcradiobuttonlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1672111,
+   "size": 5630,
+   "file": "assets/ui__t6__drc__drcradiobuttonlist.lua"
+  },
+  {
+   "name": "ui/t6/drc/drctoggle.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1677778,
+   "size": 9505,
+   "file": "assets/ui__t6__drc__drctoggle.lua"
+  },
+  {
+   "name": "ui/t6/drc/drcview.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1687318,
+   "size": 19151,
+   "file": "assets/ui__t6__drc__drcview.lua"
+  },
+  {
+   "name": "ui/t6/menus/gameinvitepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1706514,
+   "size": 5649,
+   "file": "assets/ui__t6__menus__gameinvitepopup.lua"
+  },
+  {
+   "name": "ui/t6/livenotification.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1712203,
+   "size": 4623,
+   "file": "assets/ui__t6__livenotification.lua"
+  },
+  {
+   "name": "ui/t6/wiiucontrollersettings.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1716872,
+   "size": 20062,
+   "file": "assets/ui__t6__wiiucontrollersettings.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremoteaimstyles.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1736977,
+   "size": 5648,
+   "file": "assets/ui__t6__wiiuremoteaimstyles.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotecameraspeed.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1742670,
+   "size": 2586,
+   "file": "assets/ui__t6__wiiuremotecameraspeed.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotesensitivity.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1745301,
+   "size": 3002,
+   "file": "assets/ui__t6__wiiuremotesensitivity.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotedeadzones.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1748346,
+   "size": 14469,
+   "file": "assets/ui__t6__wiiuremotedeadzones.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotegesture.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1762856,
+   "size": 2718,
+   "file": "assets/ui__t6__wiiuremotegesture.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotecontrolpresets.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1765622,
+   "size": 4093,
+   "file": "assets/ui__t6__wiiuremotecontrolpresets.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotebuttonlayout.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1769761,
+   "size": 11370,
+   "file": "assets/ui__t6__wiiuremotebuttonlayout.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotecustomize.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1781174,
+   "size": 9653,
+   "file": "assets/ui__t6__wiiuremotecustomize.lua"
+  },
+  {
+   "name": "ui/t6/wiiuremotereticle.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1790868,
+   "size": 8550,
+   "file": "assets/ui__t6__wiiuremotereticle.lua"
+  },
+  {
+   "name": "ui/t6/wiiubuttonlayout.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1799458,
+   "size": 33350,
+   "file": "assets/ui__t6__wiiubuttonlayout.lua"
+  },
+  {
+   "name": "ui/t6/wiiukeybindselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1832851,
+   "size": 4050,
+   "file": "assets/ui__t6__wiiukeybindselector.lua"
+  },
+  {
+   "name": "ui/t6/menus/wiiucontrollerselectorpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1836958,
+   "size": 4824,
+   "file": "assets/ui__t6__menus__wiiucontrollerselectorpopup.lua"
+  },
+  {
+   "name": "ui/t6/borderframe.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1841817,
+   "size": 2868,
+   "file": "assets/ui__t6__borderframe.lua"
+  },
+  {
+   "name": "ui/t6/menus/textmessage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1844726,
+   "size": 3213,
+   "file": "assets/ui__t6__menus__textmessage.lua"
+  },
+  {
+   "name": "ui/t6/menus/textmessageedit.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1847984,
+   "size": 11439,
+   "file": "assets/ui__t6__menus__textmessageedit.lua"
+  },
+  {
+   "name": "ui/t6/menus/textmessagehome.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1859468,
+   "size": 12397,
+   "file": "assets/ui__t6__menus__textmessagehome.lua"
+  },
+  {
+   "name": "ui/t6/menus/textmessagefriendspopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1871918,
+   "size": 5748,
+   "file": "assets/ui__t6__menus__textmessagefriendspopup.lua"
+  },
+  {
+   "name": "ui/t6/wiiusystemservices.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1877708,
+   "size": 4242,
+   "file": "assets/ui__t6__wiiusystemservices.lua"
+  },
+  {
+   "name": "ui/lui/lui.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1881978,
+   "size": 4237,
+   "file": "assets/ui__lui__lui.lua"
+  },
+  {
+   "name": "ui/lui/luianimnumber.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1886253,
+   "size": 1743,
+   "file": "assets/ui__lui__luianimnumber.lua"
+  },
+  {
+   "name": "ui/lui/luibutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1888030,
+   "size": 8371,
+   "file": "assets/ui__lui__luibutton.lua"
+  },
+  {
+   "name": "ui/lui/luibuttonrepeater.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1896443,
+   "size": 4584,
+   "file": "assets/ui__lui__luibuttonrepeater.lua"
+  },
+  {
+   "name": "ui/lui/luielement.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1901062,
+   "size": 22601,
+   "file": "assets/ui__lui__luielement.lua"
+  },
+  {
+   "name": "ui/lui/luielementallocator.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1923707,
+   "size": 1751,
+   "file": "assets/ui__lui__luielementallocator.lua"
+  },
+  {
+   "name": "ui/lui/luihorizontallist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1925500,
+   "size": 2917,
+   "file": "assets/ui__lui__luihorizontallist.lua"
+  },
+  {
+   "name": "ui/lui/luigridlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1928453,
+   "size": 4375,
+   "file": "assets/ui__lui__luigridlist.lua"
+  },
+  {
+   "name": "ui/lui/luiimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1932861,
+   "size": 1502,
+   "file": "assets/ui__lui__luiimage.lua"
+  },
+  {
+   "name": "ui/lui/luimousecursor.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1934402,
+   "size": 1266,
+   "file": "assets/ui__lui__luimousecursor.lua"
+  },
+  {
+   "name": "ui/lui/luiroot.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1935700,
+   "size": 2394,
+   "file": "assets/ui__lui__luiroot.lua"
+  },
+  {
+   "name": "ui/lui/luisafeareaoverlay.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1938137,
+   "size": 1296,
+   "file": "assets/ui__lui__luisafeareaoverlay.lua"
+  },
+  {
+   "name": "ui/lui/luiscrollable.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1939471,
+   "size": 1956,
+   "file": "assets/ui__lui__luiscrollable.lua"
+  },
+  {
+   "name": "ui/lui/luistreamedimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1941468,
+   "size": 1172,
+   "file": "assets/ui__lui__luistreamedimage.lua"
+  },
+  {
+   "name": "ui/lui/luitighttext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1942677,
+   "size": 484,
+   "file": "assets/ui__lui__luitighttext.lua"
+  },
+  {
+   "name": "ui/lui/luitext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1943193,
+   "size": 2785,
+   "file": "assets/ui__lui__luitext.lua"
+  },
+  {
+   "name": "ui/lui/luitouchpadbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1946020,
+   "size": 2881,
+   "file": "assets/ui__lui__luitouchpadbutton.lua"
+  },
+  {
+   "name": "ui/lui/luitouchpadradiobutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1948948,
+   "size": 2654,
+   "file": "assets/ui__lui__luitouchpadradiobutton.lua"
+  },
+  {
+   "name": "ui/lui/luitimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1951635,
+   "size": 1740,
+   "file": "assets/ui__lui__luitimer.lua"
+  },
+  {
+   "name": "ui/lui/luiverticallist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1953415,
+   "size": 5272,
+   "file": "assets/ui__lui__luiverticallist.lua"
+  },
+  {
+   "name": "ui/lui/luiverticalscrollbar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1958732,
+   "size": 2610,
+   "file": "assets/ui__lui__luiverticalscrollbar.lua"
+  },
+  {
+   "name": "ui/t6/accordiongroups.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1961381,
+   "size": 4861,
+   "file": "assets/ui__t6__accordiongroups.lua"
+  },
+  {
+   "name": "ui/t6/additivetextoverlay.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1966285,
+   "size": 5636,
+   "file": "assets/ui__t6__additivetextoverlay.lua"
+  },
+  {
+   "name": "ui/t6/allocationbar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1971958,
+   "size": 4153,
+   "file": "assets/ui__t6__allocationbar.lua"
+  },
+  {
+   "name": "ui/t6/allocationstatus.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1976151,
+   "size": 2959,
+   "file": "assets/ui__t6__allocationstatus.lua"
+  },
+  {
+   "name": "ui/t6/allocationsubtitle.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1979152,
+   "size": 6346,
+   "file": "assets/ui__t6__allocationsubtitle.lua"
+  },
+  {
+   "name": "ui/t6/attributebar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1985534,
+   "size": 2336,
+   "file": "assets/ui__t6__attributebar.lua"
+  },
+  {
+   "name": "ui/t6/attributebarlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1987910,
+   "size": 3782,
+   "file": "assets/ui__t6__attributebarlist.lua"
+  },
+  {
+   "name": "ui/t6/audiosettingsoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 1991736,
+   "size": 11171,
+   "file": "assets/ui__t6__audiosettingsoptions.lua"
+  },
+  {
+   "name": "ui/t6/border.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2002937,
+   "size": 1978,
+   "file": "assets/ui__t6__border.lua"
+  },
+  {
+   "name": "ui/t6/borderdip.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2004948,
+   "size": 1767,
+   "file": "assets/ui__t6__borderdip.lua"
+  },
+  {
+   "name": "ui/t6/borderdiplarge.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2006753,
+   "size": 3244,
+   "file": "assets/ui__t6__borderdiplarge.lua"
+  },
+  {
+   "name": "ui/t6/borderdipsmall.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2010035,
+   "size": 2324,
+   "file": "assets/ui__t6__borderdipsmall.lua"
+  },
+  {
+   "name": "ui/t6/borderlite.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2012393,
+   "size": 1816,
+   "file": "assets/ui__t6__borderlite.lua"
+  },
+  {
+   "name": "ui/t6/bracketbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2014246,
+   "size": 1822,
+   "file": "assets/ui__t6__bracketbutton.lua"
+  },
+  {
+   "name": "ui/t6/brackets.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2016100,
+   "size": 2192,
+   "file": "assets/ui__t6__brackets.lua"
+  },
+  {
+   "name": "ui/t6/briefing.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2018324,
+   "size": 11751,
+   "file": "assets/ui__t6__briefing.lua"
+  },
+  {
+   "name": "ui/t6/brightnessoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2030116,
+   "size": 4946,
+   "file": "assets/ui__t6__brightnessoptions.lua"
+  },
+  {
+   "name": "ui/t6/buttongrid.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2035096,
+   "size": 6110,
+   "file": "assets/ui__t6__buttongrid.lua"
+  },
+  {
+   "name": "ui/t6/buttonlayoutoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2041249,
+   "size": 25374,
+   "file": "assets/ui__t6__buttonlayoutoptions.lua"
+  },
+  {
+   "name": "ui/t6/buttonlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2066657,
+   "size": 15786,
+   "file": "assets/ui__t6__buttonlist.lua"
+  },
+  {
+   "name": "ui/t6/buttonprompt.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2082479,
+   "size": 9548,
+   "file": "assets/ui__t6__buttonprompt.lua"
+  },
+  {
+   "name": "ui/t6/cacmultiattachmentsbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2092076,
+   "size": 9095,
+   "file": "assets/ui__t6__cacmultiattachmentsbutton.lua"
+  },
+  {
+   "name": "ui/t6/cacmultigrenadesbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2101217,
+   "size": 3971,
+   "file": "assets/ui__t6__cacmultigrenadesbutton.lua"
+  },
+  {
+   "name": "ui/t6/cacmultiperksbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2105231,
+   "size": 4101,
+   "file": "assets/ui__t6__cacmultiperksbutton.lua"
+  },
+  {
+   "name": "ui/t6/cardcarousel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2109368,
+   "size": 22914,
+   "file": "assets/ui__t6__cardcarousel.lua"
+  },
+  {
+   "name": "ui/t6/cardcarousellist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2132322,
+   "size": 17065,
+   "file": "assets/ui__t6__cardcarousellist.lua"
+  },
+  {
+   "name": "ui/t6/carouselcategorylistener.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2149435,
+   "size": 4598,
+   "file": "assets/ui__t6__carouselcategorylistener.lua"
+  },
+  {
+   "name": "ui/t6/carouselcommon.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2154071,
+   "size": 8782,
+   "file": "assets/ui__t6__carouselcommon.lua"
+  },
+  {
+   "name": "ui/t6/categorybutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2162891,
+   "size": 1805,
+   "file": "assets/ui__t6__categorybutton.lua"
+  },
+  {
+   "name": "ui/t6/categorycarousel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2164736,
+   "size": 8004,
+   "file": "assets/ui__t6__categorycarousel.lua"
+  },
+  {
+   "name": "ui/t6/classbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2172775,
+   "size": 4146,
+   "file": "assets/ui__t6__classbutton.lua"
+  },
+  {
+   "name": "ui/t6/cod9button.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2176955,
+   "size": 18462,
+   "file": "assets/ui__t6__cod9button.lua"
+  },
+  {
+   "name": "ui/t6/codbase.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2195448,
+   "size": 74873,
+   "file": "assets/ui__t6__codbase.lua"
+  },
+  {
+   "name": "ui/t6/codmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2270352,
+   "size": 38179,
+   "file": "assets/ui__t6__codmenu.lua"
+  },
+  {
+   "name": "ui/t6/codroot.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2308562,
+   "size": 2927,
+   "file": "assets/ui__t6__codroot.lua"
+  },
+  {
+   "name": "ui/t6/hud/gamemessages.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2311529,
+   "size": 3647,
+   "file": "assets/ui__t6__hud__gamemessages.lua"
+  },
+  {
+   "name": "ui/t6/contentgrid.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2315211,
+   "size": 2270,
+   "file": "assets/ui__t6__contentgrid.lua"
+  },
+  {
+   "name": "ui/t6/contentgridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2317522,
+   "size": 25528,
+   "file": "assets/ui__t6__contentgridbutton.lua"
+  },
+  {
+   "name": "ui/t6/countdowntimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2343088,
+   "size": 2661,
+   "file": "assets/ui__t6__countdowntimer.lua"
+  },
+  {
+   "name": "ui/t6/countuptimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2345785,
+   "size": 1678,
+   "file": "assets/ui__t6__countuptimer.lua"
+  },
+  {
+   "name": "ui/t6/displaystatbox.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2347501,
+   "size": 2388,
+   "file": "assets/ui__t6__displaystatbox.lua"
+  },
+  {
+   "name": "ui/t6/distfieldtext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2349926,
+   "size": 5321,
+   "file": "assets/ui__t6__distfieldtext.lua"
+  },
+  {
+   "name": "ui/t6/drcbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2355280,
+   "size": 6620,
+   "file": "assets/ui__t6__drcbutton.lua"
+  },
+  {
+   "name": "ui/t6/drcbuttonlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2361937,
+   "size": 2616,
+   "file": "assets/ui__t6__drcbuttonlist.lua"
+  },
+  {
+   "name": "ui/t6/dualbuttonprompt.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2364593,
+   "size": 5426,
+   "file": "assets/ui__t6__dualbuttonprompt.lua"
+  },
+  {
+   "name": "ui/t6/dvarleftrightselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2370064,
+   "size": 1432,
+   "file": "assets/ui__t6__dvarleftrightselector.lua"
+  },
+  {
+   "name": "ui/t6/dvarleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2371539,
+   "size": 863,
+   "file": "assets/ui__t6__dvarleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/edgeshadow.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2372436,
+   "size": 2358,
+   "file": "assets/ui__t6__edgeshadow.lua"
+  },
+  {
+   "name": "ui/t6/error.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2374823,
+   "size": 1651,
+   "file": "assets/ui__t6__error.lua"
+  },
+  {
+   "name": "ui/t6/errorpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2376508,
+   "size": 3775,
+   "file": "assets/ui__t6__errorpopup.lua"
+  },
+  {
+   "name": "ui/t6/equipnotification.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2380324,
+   "size": 4403,
+   "file": "assets/ui__t6__equipnotification.lua"
+  },
+  {
+   "name": "ui/t6/gamelobby.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2384760,
+   "size": 7785,
+   "file": "assets/ui__t6__gamelobby.lua"
+  },
+  {
+   "name": "ui/t6/gametypesettingleftrightselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2392601,
+   "size": 1675,
+   "file": "assets/ui__t6__gametypesettingleftrightselector.lua"
+  },
+  {
+   "name": "ui/t6/graphicssettingsoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2394323,
+   "size": 8960,
+   "file": "assets/ui__t6__graphicssettingsoptions.lua"
+  },
+  {
+   "name": "ui/t6/growinggridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2403324,
+   "size": 19302,
+   "file": "assets/ui__t6__growinggridbutton.lua"
+  },
+  {
+   "name": "ui/t6/horizontalcarousel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2422668,
+   "size": 8643,
+   "file": "assets/ui__t6__horizontalcarousel.lua"
+  },
+  {
+   "name": "ui/t6/hinttext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2431343,
+   "size": 2874,
+   "file": "assets/ui__t6__hinttext.lua"
+  },
+  {
+   "name": "ui/t6/imagenavbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2434255,
+   "size": 6107,
+   "file": "assets/ui__t6__imagenavbutton.lua"
+  },
+  {
+   "name": "ui/t6/hudshaker.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2440395,
+   "size": 1241,
+   "file": "assets/ui__t6__hudshaker.lua"
+  },
+  {
+   "name": "ui/t6/joinablelist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2441672,
+   "size": 3900,
+   "file": "assets/ui__t6__joinablelist.lua"
+  },
+  {
+   "name": "ui/t6/keybindselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2445611,
+   "size": 3030,
+   "file": "assets/ui__t6__keybindselector.lua"
+  },
+  {
+   "name": "ui/t6/keyboardbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2448679,
+   "size": 4032,
+   "file": "assets/ui__t6__keyboardbutton.lua"
+  },
+  {
+   "name": "ui/t6/leaderboard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2452746,
+   "size": 3407,
+   "file": "assets/ui__t6__leaderboard.lua"
+  },
+  {
+   "name": "ui/t6/leaderboardlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2456192,
+   "size": 2449,
+   "file": "assets/ui__t6__leaderboardlist.lua"
+  },
+  {
+   "name": "ui/t6/leaderboardpreviewlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2458687,
+   "size": 8357,
+   "file": "assets/ui__t6__leaderboardpreviewlist.lua"
+  },
+  {
+   "name": "ui/t6/leaderboardlistbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2467089,
+   "size": 3182,
+   "file": "assets/ui__t6__leaderboardlistbutton.lua"
+  },
+  {
+   "name": "ui/t6/leaderboardviewlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2470314,
+   "size": 7900,
+   "file": "assets/ui__t6__leaderboardviewlist.lua"
+  },
+  {
+   "name": "ui/t6/leftrightselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2478255,
+   "size": 12264,
+   "file": "assets/ui__t6__leftrightselector.lua"
+  },
+  {
+   "name": "ui/t6/leftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2490558,
+   "size": 6430,
+   "file": "assets/ui__t6__leftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/discreteleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2497035,
+   "size": 4418,
+   "file": "assets/ui__t6__discreteleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/line.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2501481,
+   "size": 1316,
+   "file": "assets/ui__t6__line.lua"
+  },
+  {
+   "name": "ui/t6/listbox.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2502828,
+   "size": 19828,
+   "file": "assets/ui__t6__listbox.lua"
+  },
+  {
+   "name": "ui/t6/listboxbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2522693,
+   "size": 5752,
+   "file": "assets/ui__t6__listboxbutton.lua"
+  },
+  {
+   "name": "ui/t6/loadblocks.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2528479,
+   "size": 5880,
+   "file": "assets/ui__t6__loadblocks.lua"
+  },
+  {
+   "name": "ui/t6/mfcontainer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2534394,
+   "size": 5251,
+   "file": "assets/ui__t6__mfcontainer.lua"
+  },
+  {
+   "name": "ui/t6/mfpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2539676,
+   "size": 8107,
+   "file": "assets/ui__t6__mfpopup.lua"
+  },
+  {
+   "name": "ui/t6/mftabmanager.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2547819,
+   "size": 9892,
+   "file": "assets/ui__t6__mftabmanager.lua"
+  },
+  {
+   "name": "ui/t6/tabmanagerlite.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2557749,
+   "size": 8860,
+   "file": "assets/ui__t6__tabmanagerlite.lua"
+  },
+  {
+   "name": "ui/t6/mfframe.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2566640,
+   "size": 4972,
+   "file": "assets/ui__t6__mfframe.lua"
+  },
+  {
+   "name": "ui/t6/mfslide.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2571643,
+   "size": 8927,
+   "file": "assets/ui__t6__mfslide.lua"
+  },
+  {
+   "name": "ui/t6/mfslidepanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2580606,
+   "size": 2211,
+   "file": "assets/ui__t6__mfslidepanel.lua"
+  },
+  {
+   "name": "ui/t6/mfslidepanelmanager.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2582860,
+   "size": 11057,
+   "file": "assets/ui__t6__mfslidepanelmanager.lua"
+  },
+  {
+   "name": "ui/t6/missionbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2593954,
+   "size": 12570,
+   "file": "assets/ui__t6__missionbutton.lua"
+  },
+  {
+   "name": "ui/t6/mousescroller.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2606561,
+   "size": 3910,
+   "file": "assets/ui__t6__mousescroller.lua"
+  },
+  {
+   "name": "ui/t6/multiselectionbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2610515,
+   "size": 7929,
+   "file": "assets/ui__t6__multiselectionbutton.lua"
+  },
+  {
+   "name": "ui/t6/multiselectionbuttonlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2618492,
+   "size": 7765,
+   "file": "assets/ui__t6__multiselectionbuttonlist.lua"
+  },
+  {
+   "name": "ui/t6/navbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2626290,
+   "size": 8158,
+   "file": "assets/ui__t6__navbutton.lua"
+  },
+  {
+   "name": "ui/t6/navoverlay.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2634482,
+   "size": 2641,
+   "file": "assets/ui__t6__navoverlay.lua"
+  },
+  {
+   "name": "ui/t6/objectivetext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2637160,
+   "size": 17900,
+   "file": "assets/ui__t6__objectivetext.lua"
+  },
+  {
+   "name": "ui/t6/optionelement.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2655097,
+   "size": 1647,
+   "file": "assets/ui__t6__optionelement.lua"
+  },
+  {
+   "name": "ui/t6/options.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2656775,
+   "size": 46656,
+   "file": "assets/ui__t6__options.lua"
+  },
+  {
+   "name": "ui/t6/overlay.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2703462,
+   "size": 2400,
+   "file": "assets/ui__t6__overlay.lua"
+  },
+  {
+   "name": "ui/t6/panelmanager.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2705898,
+   "size": 12053,
+   "file": "assets/ui__t6__panelmanager.lua"
+  },
+  {
+   "name": "ui/t6/pipcontainer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2717987,
+   "size": 12633,
+   "file": "assets/ui__t6__pipcontainer.lua"
+  },
+  {
+   "name": "ui/t6/playercard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2730654,
+   "size": 6730,
+   "file": "assets/ui__t6__playercard.lua"
+  },
+  {
+   "name": "ui/t6/playerlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2737418,
+   "size": 10370,
+   "file": "assets/ui__t6__playerlist.lua"
+  },
+  {
+   "name": "ui/t6/playerlistrow.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2747825,
+   "size": 20991,
+   "file": "assets/ui__t6__playerlistrow.lua"
+  },
+  {
+   "name": "ui/t6/popup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2768845,
+   "size": 37373,
+   "file": "assets/ui__t6__popup.lua"
+  },
+  {
+   "name": "ui/t6/profileleftrightselector.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2806266,
+   "size": 1652,
+   "file": "assets/ui__t6__profileleftrightselector.lua"
+  },
+  {
+   "name": "ui/t6/profileleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2807964,
+   "size": 1281,
+   "file": "assets/ui__t6__profileleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/profilediscreteleftrightslider.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2809299,
+   "size": 2164,
+   "file": "assets/ui__t6__profilediscreteleftrightslider.lua"
+  },
+  {
+   "name": "ui/t6/scrollablecontentgrid.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2811508,
+   "size": 11571,
+   "file": "assets/ui__t6__scrollablecontentgrid.lua"
+  },
+  {
+   "name": "ui/t6/scrollingverticallist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2823124,
+   "size": 2102,
+   "file": "assets/ui__t6__scrollingverticallist.lua"
+  },
+  {
+   "name": "ui/t6/sidebrackets.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2825262,
+   "size": 2427,
+   "file": "assets/ui__t6__sidebrackets.lua"
+  },
+  {
+   "name": "ui/t6/sidebracketsimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2827730,
+   "size": 3027,
+   "file": "assets/ui__t6__sidebracketsimage.lua"
+  },
+  {
+   "name": "ui/t6/slotlist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2830789,
+   "size": 13250,
+   "file": "assets/ui__t6__slotlist.lua"
+  },
+  {
+   "name": "ui/t6/slotlistgridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2844081,
+   "size": 5345,
+   "file": "assets/ui__t6__slotlistgridbutton.lua"
+  },
+  {
+   "name": "ui/t6/splitscreenscaler.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2849467,
+   "size": 1814,
+   "file": "assets/ui__t6__splitscreenscaler.lua"
+  },
+  {
+   "name": "ui/t6/sticklayoutoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2851323,
+   "size": 18382,
+   "file": "assets/ui__t6__sticklayoutoptions.lua"
+  },
+  {
+   "name": "ui/t6/tabbedslotbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2869745,
+   "size": 3391,
+   "file": "assets/ui__t6__tabbedslotbutton.lua"
+  },
+  {
+   "name": "ui/t6/teletype.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2873168,
+   "size": 4635,
+   "file": "assets/ui__t6__teletype.lua"
+  },
+  {
+   "name": "ui/t6/ticker.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2877833,
+   "size": 3097,
+   "file": "assets/ui__t6__ticker.lua"
+  },
+  {
+   "name": "ui/t6/touchpadverticallist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2880974,
+   "size": 9752,
+   "file": "assets/ui__t6__touchpadverticallist.lua"
+  },
+  {
+   "name": "ui/t6/typewritertext.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2890764,
+   "size": 1714,
+   "file": "assets/ui__t6__typewritertext.lua"
+  },
+  {
+   "name": "ui/t6/unifiedfriends.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2892516,
+   "size": 37693,
+   "file": "assets/ui__t6__unifiedfriends.lua"
+  },
+  {
+   "name": "ui/t6/verticalcarousel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2930249,
+   "size": 9087,
+   "file": "assets/ui__t6__verticalcarousel.lua"
+  },
+  {
+   "name": "ui/t6/visordataboxes.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2939374,
+   "size": 6576,
+   "file": "assets/ui__t6__visordataboxes.lua"
+  },
+  {
+   "name": "ui/t6/visorhud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2945982,
+   "size": 3960,
+   "file": "assets/ui__t6__visorhud.lua"
+  },
+  {
+   "name": "ui/t6/visorimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2949976,
+   "size": 1481,
+   "file": "assets/ui__t6__visorimage.lua"
+  },
+  {
+   "name": "ui/t6/visortimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2951491,
+   "size": 2786,
+   "file": "assets/ui__t6__visortimer.lua"
+  },
+  {
+   "name": "ui/t6/visorleftbracket.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2954317,
+   "size": 3812,
+   "file": "assets/ui__t6__visorleftbracket.lua"
+  },
+  {
+   "name": "ui/t6/visorrightbracket.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2958170,
+   "size": 3982,
+   "file": "assets/ui__t6__visorrightbracket.lua"
+  },
+  {
+   "name": "ui/t6/visortypewriter.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2962191,
+   "size": 7802,
+   "file": "assets/ui__t6__visortypewriter.lua"
+  },
+  {
+   "name": "ui/t6/voipimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2970026,
+   "size": 487,
+   "file": "assets/ui__t6__voipimage.lua"
+  },
+  {
+   "name": "ui/t6/weaponattributelist.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2970556,
+   "size": 3224,
+   "file": "assets/ui__t6__weaponattributelist.lua"
+  },
+  {
+   "name": "ui/t6/weaponbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2973816,
+   "size": 15624,
+   "file": "assets/ui__t6__weaponbutton.lua"
+  },
+  {
+   "name": "ui/t6/weaponcarouselbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 2989484,
+   "size": 16262,
+   "file": "assets/ui__t6__weaponcarouselbutton.lua"
+  },
+  {
+   "name": "ui/t6/weaponlevel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3005781,
+   "size": 11742,
+   "file": "assets/ui__t6__weaponlevel.lua"
+  },
+  {
+   "name": "ui/t6/hud/visibilitybits.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3017565,
+   "size": 3517,
+   "file": "assets/ui__t6__hud__visibilitybits.lua"
+  },
+  {
+   "name": "ui/t6/menus/confirmleavepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3021129,
+   "size": 4225,
+   "file": "assets/ui__t6__menus__confirmleavepopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/fbpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3025391,
+   "size": 2726,
+   "file": "assets/ui__t6__menus__fbpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/friendoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3028160,
+   "size": 4170,
+   "file": "assets/ui__t6__menus__friendoptions.lua"
+  },
+  {
+   "name": "ui/t6/menus/friendpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3032371,
+   "size": 25500,
+   "file": "assets/ui__t6__menus__friendpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/keyboard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3057909,
+   "size": 10442,
+   "file": "assets/ui__t6__menus__keyboard.lua"
+  },
+  {
+   "name": "ui/t6/menus/kickplayerpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3068396,
+   "size": 2163,
+   "file": "assets/ui__t6__menus__kickplayerpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/safeareamenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3070601,
+   "size": 10216,
+   "file": "assets/ui__t6__menus__safeareamenu.lua"
+  },
+  {
+   "name": "ui/t6/menus/signinpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3080858,
+   "size": 2094,
+   "file": "assets/ui__t6__menus__signinpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/signoutpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3082994,
+   "size": 2796,
+   "file": "assets/ui__t6__menus__signoutpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/splitscreengamelobby.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3085840,
+   "size": 4888,
+   "file": "assets/ui__t6__menus__splitscreengamelobby.lua"
+  },
+  {
+   "name": "ui/t6/menus/stereoscopic3dmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3090776,
+   "size": 4596,
+   "file": "assets/ui__t6__menus__stereoscopic3dmenu.lua"
+  },
+  {
+   "name": "ui/t6/menus/stereoscopic3dconfirmationpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3095433,
+   "size": 2698,
+   "file": "assets/ui__t6__menus__stereoscopic3dconfirmationpopup.lua"
+  },
+  {
+   "name": "ui/t6/menus/systeminfomenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3098175,
+   "size": 4450,
+   "file": "assets/ui__t6__menus__systeminfomenu.lua"
+  },
+  {
+   "name": "ui/t6/menus/refetchwadpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3102670,
+   "size": 2635,
+   "file": "assets/ui__t6__menus__refetchwadpopup.lua"
+  },
+  {
+   "name": "ui/t6/bonuscardbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3105344,
+   "size": 11895,
+   "file": "assets/ui__t6__bonuscardbutton.lua"
+  },
+  {
+   "name": "ui/t6/bonuscardtitle.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3117277,
+   "size": 1804,
+   "file": "assets/ui__t6__bonuscardtitle.lua"
+  },
+  {
+   "name": "ui/t6/mapinfoimage.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3119117,
+   "size": 14440,
+   "file": "assets/ui__t6__mapinfoimage.lua"
+  },
+  {
+   "name": "ui/t6/mapvoter.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3133589,
+   "size": 20252,
+   "file": "assets/ui__t6__mapvoter.lua"
+  },
+  {
+   "name": "ui/t6/numbersbackground.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3153882,
+   "size": 2587,
+   "file": "assets/ui__t6__numbersbackground.lua"
+  },
+  {
+   "name": "ui/t6/selectedreward.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3156507,
+   "size": 2079,
+   "file": "assets/ui__t6__selectedreward.lua"
+  },
+  {
+   "name": "ui/t6/menus/dualviewmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3158628,
+   "size": 6148,
+   "file": "assets/ui__t6__menus__dualviewmenu.lua"
+  },
+  {
+   "name": "ui/t6/menus/mutepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3164815,
+   "size": 2240,
+   "file": "assets/ui__t6__menus__mutepopup.lua"
+  },
+  {
+   "name": "ui/t6/scrollabletextcontainer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3167102,
+   "size": 4069,
+   "file": "assets/ui__t6__scrollabletextcontainer.lua"
+  },
+  {
+   "name": "ui_mp/t6/gameoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3171209,
+   "size": 32223,
+   "file": "assets/ui_mp__t6__gameoptions.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3203462,
+   "size": 27940,
+   "file": "assets/ui_mp__t6__hud.lua"
+  },
+  {
+   "name": "ui_mp/t6/main.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3231433,
+   "size": 10726,
+   "file": "assets/ui_mp__t6__main.lua"
+  },
+  {
+   "name": "ui_mp/t6/mainmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3242194,
+   "size": 31538,
+   "file": "assets/ui_mp__t6__mainmenu.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/ammocounter.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3273774,
+   "size": 3790,
+   "file": "assets/ui_mp__t6__hud__ammocounter.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/deadspectate.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3277607,
+   "size": 7432,
+   "file": "assets/ui_mp__t6__hud__deadspectate.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/loweroptionsbar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3285085,
+   "size": 2227,
+   "file": "assets/ui_mp__t6__hud__loweroptionsbar.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/offhandicons.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3287355,
+   "size": 3863,
+   "file": "assets/ui_mp__t6__hud__offhandicons.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3291258,
+   "size": 1732,
+   "file": "assets/ui_mp__t6__hud__gametimer.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/killcam.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3293028,
+   "size": 2530,
+   "file": "assets/ui_mp__t6__hud__killcam.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/loading.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3295596,
+   "size": 23009,
+   "file": "assets/ui_mp__t6__hud__loading.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/migration.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3318645,
+   "size": 1798,
+   "file": "assets/ui_mp__t6__hud__migration.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/objectivewaypoint.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3320491,
+   "size": 11440,
+   "file": "assets/ui_mp__t6__hud__objectivewaypoint.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/reaperhud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3331971,
+   "size": 2778,
+   "file": "assets/ui_mp__t6__hud__reaperhud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scoreboard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3334790,
+   "size": 36587,
+   "file": "assets/ui_mp__t6__hud__scoreboard.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scoreboardplayerrow.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3371427,
+   "size": 16735,
+   "file": "assets/ui_mp__t6__hud__scoreboardplayerrow.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scorefeed.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3388202,
+   "size": 5198,
+   "file": "assets/ui_mp__t6__hud__scorefeed.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectate.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3393439,
+   "size": 25639,
+   "file": "assets/ui_mp__t6__hud__spectate.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectateplayercard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3419127,
+   "size": 8345,
+   "file": "assets/ui_mp__t6__hud__spectateplayercard.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectatebuttonbar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3427520,
+   "size": 13880,
+   "file": "assets/ui_mp__t6__hud__spectatebuttonbar.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectatesidepanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3441448,
+   "size": 9682,
+   "file": "assets/ui_mp__t6__hud__spectatesidepanel.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectatetoppanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3451177,
+   "size": 2632,
+   "file": "assets/ui_mp__t6__hud__spectatetoppanel.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3453862,
+   "size": 1283,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_ctf.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3455202,
+   "size": 7552,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_ctf.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_dem.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3462811,
+   "size": 7603,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_dem.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_dom.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3470471,
+   "size": 5717,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_dom.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_hq.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3476244,
+   "size": 11002,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_hq.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_koth.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3487304,
+   "size": 1220,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_koth.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamemodestatus_sd.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3488580,
+   "size": 10797,
+   "file": "assets/ui_mp__t6__hud__spectategamemodestatus_sd.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectateplayerinfo.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3499426,
+   "size": 19525,
+   "file": "assets/ui_mp__t6__hud__spectateplayerinfo.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectatedisplayoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3519004,
+   "size": 9048,
+   "file": "assets/ui_mp__t6__hud__spectatedisplayoptions.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectateteamcardmultiteam.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3528108,
+   "size": 6476,
+   "file": "assets/ui_mp__t6__hud__spectateteamcardmultiteam.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectateteamcardtwoteam.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3534638,
+   "size": 3751,
+   "file": "assets/ui_mp__t6__hud__spectateteamcardtwoteam.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamestatusmultiteam.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3538447,
+   "size": 9925,
+   "file": "assets/ui_mp__t6__hud__spectategamestatusmultiteam.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/spectategamestatustwoteam.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3548428,
+   "size": 8142,
+   "file": "assets/ui_mp__t6__hud__spectategamestatustwoteam.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/turrethud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3556610,
+   "size": 2695,
+   "file": "assets/ui_mp__t6__hud__turrethud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/grenadeeffect.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3559349,
+   "size": 4374,
+   "file": "assets/ui_mp__t6__hud__grenadeeffect.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/weaponlabel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3563765,
+   "size": 1709,
+   "file": "assets/ui_mp__t6__hud__weaponlabel.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/ingamemenus.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3565516,
+   "size": 4056,
+   "file": "assets/ui_mp__t6__hud__ingamemenus.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/demohighlightreel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3569620,
+   "size": 19437,
+   "file": "assets/ui_mp__t6__hud__demohighlightreel.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/demohud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3589095,
+   "size": 9513,
+   "file": "assets/ui_mp__t6__hud__demohud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/demoingame.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3598649,
+   "size": 8980,
+   "file": "assets/ui_mp__t6__hud__demoingame.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/demopopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3607669,
+   "size": 13757,
+   "file": "assets/ui_mp__t6__hud__demopopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/managesegments.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3621471,
+   "size": 34529,
+   "file": "assets/ui_mp__t6__hud__managesegments.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/class.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3656036,
+   "size": 13665,
+   "file": "assets/ui_mp__t6__hud__class.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/endgamepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3669744,
+   "size": 6767,
+   "file": "assets/ui_mp__t6__hud__endgamepopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/team_marinesopfor.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3676559,
+   "size": 15082,
+   "file": "assets/ui_mp__t6__hud__team_marinesopfor.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/clantag.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3691681,
+   "size": 5764,
+   "file": "assets/ui_mp__t6__menus__clantag.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/editdefaultclasses.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3697496,
+   "size": 10416,
+   "file": "assets/ui_mp__t6__menus__editdefaultclasses.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/customclassgameoptions.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3707967,
+   "size": 8343,
+   "file": "assets/ui_mp__t6__menus__customclassgameoptions.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/editgameoptionspopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3716363,
+   "size": 8874,
+   "file": "assets/ui_mp__t6__menus__editgameoptionspopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/editgeneraloptionsmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3725292,
+   "size": 915,
+   "file": "assets/ui_mp__t6__menus__editgeneraloptionsmenu.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/editmodespecificoptionsmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3726267,
+   "size": 1165,
+   "file": "assets/ui_mp__t6__menus__editmodespecificoptionsmenu.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/viewgameoptionspopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3727485,
+   "size": 9532,
+   "file": "assets/ui_mp__t6__menus__viewgameoptionspopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/fileactionpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3737065,
+   "size": 22182,
+   "file": "assets/ui_mp__t6__menus__fileactionpopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/playercard.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3759290,
+   "size": 8562,
+   "file": "assets/ui_mp__t6__menus__playercard.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/filesharemanager.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3767901,
+   "size": 30919,
+   "file": "assets/ui_mp__t6__menus__filesharemanager.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/filesharesummary.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3798869,
+   "size": 7154,
+   "file": "assets/ui_mp__t6__menus__filesharesummary.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/filesharesave.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3806069,
+   "size": 19430,
+   "file": "assets/ui_mp__t6__menus__filesharesave.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/livestream.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3825542,
+   "size": 46737,
+   "file": "assets/ui_mp__t6__menus__livestream.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/livestreamlogin.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3872327,
+   "size": 7798,
+   "file": "assets/ui_mp__t6__menus__livestreamlogin.lua"
+  },
+  {
+   "name": "ui_mp/t6/frienddetails.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3880165,
+   "size": 8594,
+   "file": "assets/ui_mp__t6__frienddetails.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/motd.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3888796,
+   "size": 8959,
+   "file": "assets/ui_mp__t6__menus__motd.lua"
+  },
+  {
+   "name": "ui_mp/t6/matchmaking.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3897793,
+   "size": 4515,
+   "file": "assets/ui_mp__t6__matchmaking.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drcmp.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3902344,
+   "size": 3825,
+   "file": "assets/ui_mp__t6__drc__drcmp.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drcmpfrontend.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3906213,
+   "size": 11331,
+   "file": "assets/ui_mp__t6__drc__drcmpfrontend.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drcglobepanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3917588,
+   "size": 7998,
+   "file": "assets/ui_mp__t6__drc__drcglobepanel.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/drcmain.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3925626,
+   "size": 1722,
+   "file": "assets/ui_mp__t6__menus__drcmain.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/invalidaccountpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3927400,
+   "size": 1169,
+   "file": "assets/ui_mp__t6__menus__invalidaccountpopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drcrewardselection.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3928618,
+   "size": 13939,
+   "file": "assets/ui_mp__t6__drc__drcrewardselection.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drcchangeclass.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3942602,
+   "size": 11266,
+   "file": "assets/ui_mp__t6__drc__drcchangeclass.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drccompasspanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3953914,
+   "size": 16063,
+   "file": "assets/ui_mp__t6__drc__drccompasspanel.lua"
+  },
+  {
+   "name": "ui_mp/t6/drc/drczmmainpanel.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3970022,
+   "size": 5783,
+   "file": "assets/ui_mp__t6__drc__drczmmainpanel.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/subloginmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3975850,
+   "size": 3367,
+   "file": "assets/ui_mp__t6__menus__subloginmenu.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/subloginconnectpopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3979270,
+   "size": 3854,
+   "file": "assets/ui_mp__t6__menus__subloginconnectpopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/switchcontrollersmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3983178,
+   "size": 11976,
+   "file": "assets/ui_mp__t6__menus__switchcontrollersmenu.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/wiiucontrollerselectorpopupmp.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 3995216,
+   "size": 10640,
+   "file": "assets/ui_mp__t6__menus__wiiucontrollerselectorpopupmp.lua"
+  },
+  {
+   "name": "ui/t6/wiiupopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 4005889,
+   "size": 8164,
+   "file": "assets/ui__t6__wiiupopup.lua"
+  },
+  {
+   "name": "ui/t6/customclass.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 4014088,
+   "size": 29657,
+   "file": "assets/ui__t6__customclass.lua"
+  },
+  {
+   "name": "ui_mp/t6/cacweaponbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 4043787,
+   "size": 7684,
+   "file": "assets/ui_mp__t6__cacweaponbutton.lua"
+  },
+  {
+   "name": "ui/t6/cacgrenadesbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5504199,
+   "size": 7939,
+   "file": "assets/ui__t6__cacgrenadesbutton.lua"
+  },
+  {
+   "name": "ui/t6/classpreview.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5512174,
+   "size": 30602,
+   "file": "assets/ui__t6__classpreview.lua"
+  },
+  {
+   "name": "ui/t6/playeridentity.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5542814,
+   "size": 16783,
+   "file": "assets/ui__t6__playeridentity.lua"
+  },
+  {
+   "name": "ui/t6/splitscreenclasspreview.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5559644,
+   "size": 18033,
+   "file": "assets/ui__t6__splitscreenclasspreview.lua"
+  },
+  {
+   "name": "ui/t6/vcsmenu.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5577708,
+   "size": 5743,
+   "file": "assets/ui__t6__vcsmenu.lua"
+  },
+  {
+   "name": "ui/t6/xpbar.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5583480,
+   "size": 7055,
+   "file": "assets/ui__t6__xpbar.lua"
+  },
+  {
+   "name": "ui/t6/hud/compass.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5590570,
+   "size": 6743,
+   "file": "assets/ui__t6__hud__compass.lua"
+  },
+  {
+   "name": "ui_mp/t6/attachmentgridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5597360,
+   "size": 4589,
+   "file": "assets/ui_mp__t6__attachmentgridbutton.lua"
+  },
+  {
+   "name": "ui_mp/t6/bonuscardgridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5601995,
+   "size": 4167,
+   "file": "assets/ui_mp__t6__bonuscardgridbutton.lua"
+  },
+  {
+   "name": "ui_mp/t6/ffotdmp.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5606196,
+   "size": 4620,
+   "file": "assets/ui_mp__t6__ffotdmp.lua"
+  },
+  {
+   "name": "ui_mp/t6/rewardgridbutton.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5610859,
+   "size": 4678,
+   "file": "assets/ui_mp__t6__rewardgridbutton.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/airvehiclehud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5615581,
+   "size": 19328,
+   "file": "assets/ui_mp__t6__hud__airvehiclehud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/aitank.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5634946,
+   "size": 3210,
+   "file": "assets/ui_mp__t6__hud__aitank.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/ammoarea.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5638195,
+   "size": 21926,
+   "file": "assets/ui_mp__t6__hud__ammoarea.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/bombtimer.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5660161,
+   "size": 2713,
+   "file": "assets/ui_mp__t6__hud__bombtimer.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/changeclass.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5662916,
+   "size": 13964,
+   "file": "assets/ui_mp__t6__hud__changeclass.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/choppergunnerhud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5676927,
+   "size": 5007,
+   "file": "assets/ui_mp__t6__hud__choppergunnerhud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/huddigit.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5681973,
+   "size": 4637,
+   "file": "assets/ui_mp__t6__hud__huddigit.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/nameplate.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5686650,
+   "size": 3943,
+   "file": "assets/ui_mp__t6__hud__nameplate.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/predatorhud.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5690635,
+   "size": 2486,
+   "file": "assets/ui_mp__t6__hud__predatorhud.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/qrdrone.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5693159,
+   "size": 5565,
+   "file": "assets/ui_mp__t6__hud__qrdrone.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/rewardselection.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5698770,
+   "size": 24898,
+   "file": "assets/ui_mp__t6__hud__rewardselection.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/ingamevoipdock.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5723713,
+   "size": 2391,
+   "file": "assets/ui_mp__t6__hud__ingamevoipdock.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scorearea.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5726144,
+   "size": 13124,
+   "file": "assets/ui_mp__t6__hud__scorearea.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scorebottomleft.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5739314,
+   "size": 12937,
+   "file": "assets/ui_mp__t6__hud__scorebottomleft.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/scorepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5752292,
+   "size": 7807,
+   "file": "assets/ui_mp__t6__hud__scorepopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/notificationdoublexp.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5760150,
+   "size": 2052,
+   "file": "assets/ui_mp__t6__hud__notificationdoublexp.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/notificationpopups.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5762251,
+   "size": 38766,
+   "file": "assets/ui_mp__t6__hud__notificationpopups.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/gametypebase.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5801070,
+   "size": 11781,
+   "file": "assets/ui_mp__t6__hud__gametypes__gametypebase.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/ctf.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5812895,
+   "size": 9371,
+   "file": "assets/ui_mp__t6__hud__gametypes__ctf.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/dem.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5822310,
+   "size": 1658,
+   "file": "assets/ui_mp__t6__hud__gametypes__dem.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/dom.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5824012,
+   "size": 2497,
+   "file": "assets/ui_mp__t6__hud__gametypes__dom.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/hq.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5826552,
+   "size": 2679,
+   "file": "assets/ui_mp__t6__hud__gametypes__hq.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/koth.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5829276,
+   "size": 2763,
+   "file": "assets/ui_mp__t6__hud__gametypes__koth.lua"
+  },
+  {
+   "name": "ui_mp/t6/hud/gametypes/oic.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5832083,
+   "size": 1839,
+   "file": "assets/ui_mp__t6__hud__gametypes__oic.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/cac.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5833958,
+   "size": 17179,
+   "file": "assets/ui_mp__t6__menus__cac.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/cacbonuscards.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5851183,
+   "size": 11398,
+   "file": "assets/ui_mp__t6__menus__cacbonuscards.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/cacchooseclass.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5862628,
+   "size": 17294,
+   "file": "assets/ui_mp__t6__menus__cacchooseclass.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/cacutility.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5879965,
+   "size": 18581,
+   "file": "assets/ui_mp__t6__menus__cacutility.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/filesharepopup.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5898593,
+   "size": 5081,
+   "file": "assets/ui_mp__t6__menus__filesharepopup.lua"
+  },
+  {
+   "name": "ui_mp/t6/menus/miniidentity.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 5903719,
+   "size": 1283,
+   "file": "assets/ui_mp__t6__menus__miniidentity.lua"
+  },
+  {
+   "name": "common_scripts/utility.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5905042,
+   "size": 25281,
+   "file": "assets/common_scripts__utility.gsc"
+  },
+  {
+   "name": "codescripts/character_mp.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5930365,
+   "size": 478,
+   "file": "assets/codescripts__character_mp.gsc"
+  },
+  {
+   "name": "maps/mp/_pc.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5932758,
+   "size": 154,
+   "file": "assets/maps__mp___pc.gsc"
+  },
+  {
+   "name": "maps/mp/_acousticsensor.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5932953,
+   "size": 3499,
+   "file": "assets/maps__mp___acousticsensor.gsc"
+  },
+  {
+   "name": "maps/mp/_ambientpackage.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5936493,
+   "size": 92,
+   "file": "assets/maps__mp___ambientpackage.gsc"
+  },
+  {
+   "name": "maps/mp/_art.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5936615,
+   "size": 9687,
+   "file": "assets/maps__mp___art.gsc"
+  },
+  {
+   "name": "maps/mp/_audio.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5946334,
+   "size": 2105,
+   "file": "assets/maps__mp___audio.gsc"
+  },
+  {
+   "name": "maps/mp/_ballistic_knife.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5948481,
+   "size": 4626,
+   "file": "assets/maps__mp___ballistic_knife.gsc"
+  },
+  {
+   "name": "maps/mp/_bb.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5953136,
+   "size": 1541,
+   "file": "assets/maps__mp___bb.gsc"
+  },
+  {
+   "name": "maps/mp/_bouncingbetty.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5954840,
+   "size": 4422,
+   "file": "assets/maps__mp___bouncingbetty.gsc"
+  },
+  {
+   "name": "maps/mp/_burnplayer.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5959299,
+   "size": 7822,
+   "file": "assets/maps__mp___burnplayer.gsc"
+  },
+  {
+   "name": "maps/mp/_busing.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5967154,
+   "size": 406,
+   "file": "assets/maps__mp___busing.gsc"
+  },
+  {
+   "name": "maps/mp/_challenges.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5967597,
+   "size": 32237,
+   "file": "assets/maps__mp___challenges.gsc"
+  },
+  {
+   "name": "maps/mp/_compass.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 5999868,
+   "size": 1423,
+   "file": "assets/maps__mp___compass.gsc"
+  },
+  {
+   "name": "maps/mp/_createfx.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6001326,
+   "size": 47458,
+   "file": "assets/maps__mp___createfx.gsc"
+  },
+  {
+   "name": "maps/mp/_createfxmenu.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6048823,
+   "size": 14838,
+   "file": "assets/maps__mp___createfxmenu.gsc"
+  },
+  {
+   "name": "maps/mp/_createfxundo.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6063700,
+   "size": 7538,
+   "file": "assets/maps__mp___createfxundo.gsc"
+  },
+  {
+   "name": "maps/mp/_decoy.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6071270,
+   "size": 6733,
+   "file": "assets/maps__mp___decoy.gsc"
+  },
+  {
+   "name": "maps/mp/_demo.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6078034,
+   "size": 2250,
+   "file": "assets/maps__mp___demo.gsc"
+  },
+  {
+   "name": "maps/mp/_development_dvars.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6080328,
+   "size": 166,
+   "file": "assets/maps__mp___development_dvars.gsc"
+  },
+  {
+   "name": "maps/mp/_destructible.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6080533,
+   "size": 6694,
+   "file": "assets/maps__mp___destructible.gsc"
+  },
+  {
+   "name": "maps/mp/_empgrenade.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6087264,
+   "size": 2753,
+   "file": "assets/maps__mp___empgrenade.gsc"
+  },
+  {
+   "name": "maps/mp/_entityheadicons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6090059,
+   "size": 2706,
+   "file": "assets/maps__mp___entityheadicons.gsc"
+  },
+  {
+   "name": "maps/mp/_explosive_bolt.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6092806,
+   "size": 381,
+   "file": "assets/maps__mp___explosive_bolt.gsc"
+  },
+  {
+   "name": "maps/mp/_flashgrenades.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6093227,
+   "size": 3098,
+   "file": "assets/maps__mp___flashgrenades.gsc"
+  },
+  {
+   "name": "maps/mp/_fx.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6096354,
+   "size": 8366,
+   "file": "assets/maps__mp___fx.gsc"
+  },
+  {
+   "name": "maps/mp/_fxanim.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6104753,
+   "size": 175,
+   "file": "assets/maps__mp___fxanim.gsc"
+  },
+  {
+   "name": "maps/mp/_gameadvertisement.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6104972,
+   "size": 7761,
+   "file": "assets/maps__mp___gameadvertisement.gsc"
+  },
+  {
+   "name": "maps/mp/_gamerep.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6112767,
+   "size": 8810,
+   "file": "assets/maps__mp___gamerep.gsc"
+  },
+  {
+   "name": "maps/mp/_global_fx.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6121613,
+   "size": 2061,
+   "file": "assets/maps__mp___global_fx.gsc"
+  },
+  {
+   "name": "maps/mp/_hacker_tool.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6123712,
+   "size": 12749,
+   "file": "assets/maps__mp___hacker_tool.gsc"
+  },
+  {
+   "name": "maps/mp/_heatseekingmissile.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6136506,
+   "size": 10037,
+   "file": "assets/maps__mp___heatseekingmissile.gsc"
+  },
+  {
+   "name": "maps/mp/_interactive_objects.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6146589,
+   "size": 6779,
+   "file": "assets/maps__mp___interactive_objects.gsc"
+  },
+  {
+   "name": "maps/mp/_load.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6153399,
+   "size": 11488,
+   "file": "assets/maps__mp___load.gsc"
+  },
+  {
+   "name": "maps/mp/_medals.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6164920,
+   "size": 766,
+   "file": "assets/maps__mp___medals.gsc"
+  },
+  {
+   "name": "maps/mp/_menus.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6165718,
+   "size": 106,
+   "file": "assets/maps__mp___menus.gsc"
+  },
+  {
+   "name": "maps/mp/_mgturret.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6165859,
+   "size": 4813,
+   "file": "assets/maps__mp___mgturret.gsc"
+  },
+  {
+   "name": "maps/mp/_multi_extracam.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6170713,
+   "size": 118,
+   "file": "assets/maps__mp___multi_extracam.gsc"
+  },
+  {
+   "name": "maps/mp/_music.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6170863,
+   "size": 482,
+   "file": "assets/maps__mp___music.gsc"
+  },
+  {
+   "name": "maps/mp/_popups.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6171378,
+   "size": 6647,
+   "file": "assets/maps__mp___popups.gsc"
+  },
+  {
+   "name": "maps/mp/_riotshield.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6178062,
+   "size": 9302,
+   "file": "assets/maps__mp___riotshield.gsc"
+  },
+  {
+   "name": "maps/mp/_satchel_charge.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6187405,
+   "size": 1578,
+   "file": "assets/maps__mp___satchel_charge.gsc"
+  },
+  {
+   "name": "maps/mp/_sensor_grenade.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6189024,
+   "size": 4391,
+   "file": "assets/maps__mp___sensor_grenade.gsc"
+  },
+  {
+   "name": "maps/mp/_scoreevents.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6193453,
+   "size": 14510,
+   "file": "assets/maps__mp___scoreevents.gsc"
+  },
+  {
+   "name": "maps/mp/_scrambler.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6208126,
+   "size": 4196,
+   "file": "assets/maps__mp___scrambler.gsc"
+  },
+  {
+   "name": "maps/mp/_script_gen.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6212359,
+   "size": 6178,
+   "file": "assets/maps__mp___script_gen.gsc"
+  },
+  {
+   "name": "maps/mp/_smokegrenade.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6218576,
+   "size": 1677,
+   "file": "assets/maps__mp___smokegrenade.gsc"
+  },
+  {
+   "name": "maps/mp/_sticky_grenade.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6220294,
+   "size": 381,
+   "file": "assets/maps__mp___sticky_grenade.gsc"
+  },
+  {
+   "name": "maps/mp/_tacticalinsertion.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6220719,
+   "size": 8442,
+   "file": "assets/maps__mp___tacticalinsertion.gsc"
+  },
+  {
+   "name": "maps/mp/_teargrenades.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6229200,
+   "size": 3181,
+   "file": "assets/maps__mp___teargrenades.gsc"
+  },
+  {
+   "name": "maps/mp/_treadfx.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6232415,
+   "size": 2825,
+   "file": "assets/maps__mp___treadfx.gsc"
+  },
+  {
+   "name": "maps/mp/_tabun.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6235272,
+   "size": 10632,
+   "file": "assets/maps__mp___tabun.gsc"
+  },
+  {
+   "name": "maps/mp/_trophy_system.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6245944,
+   "size": 7419,
+   "file": "assets/maps__mp___trophy_system.gsc"
+  },
+  {
+   "name": "maps/mp/_proximity_grenade.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6253407,
+   "size": 7342,
+   "file": "assets/maps__mp___proximity_grenade.gsc"
+  },
+  {
+   "name": "maps/mp/_utility.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6260783,
+   "size": 37646,
+   "file": "assets/maps__mp___utility.gsc"
+  },
+  {
+   "name": "maps/mp/_vehicles.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6298464,
+   "size": 28113,
+   "file": "assets/maps__mp___vehicles.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_battlechatter_mp.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6326749,
+   "size": 17750,
+   "file": "assets/maps__mp__gametypes___battlechatter_mp.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_callbacksetup.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6344549,
+   "size": 5734,
+   "file": "assets/maps__mp__gametypes___callbacksetup.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_class.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6350325,
+   "size": 21909,
+   "file": "assets/maps__mp__gametypes___class.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_clientids.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6372280,
+   "size": 283,
+   "file": "assets/maps__mp__gametypes___clientids.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_copter.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6372606,
+   "size": 12455,
+   "file": "assets/maps__mp__gametypes___copter.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_damagefeedback.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6385112,
+   "size": 2771,
+   "file": "assets/maps__mp__gametypes___damagefeedback.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_deathicons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6387930,
+   "size": 1386,
+   "file": "assets/maps__mp__gametypes___deathicons.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_dev.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6389356,
+   "size": 52036,
+   "file": "assets/maps__mp__gametypes___dev.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_dev_class.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6441438,
+   "size": 9998,
+   "file": "assets/maps__mp__gametypes___dev_class.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_friendicons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6451484,
+   "size": 1801,
+   "file": "assets/maps__mp__gametypes___friendicons.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_gameobjects.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6453333,
+   "size": 36833,
+   "file": "assets/maps__mp__gametypes___gameobjects.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globalentities.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6490217,
+   "size": 102,
+   "file": "assets/maps__mp__gametypes___globalentities.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6490367,
+   "size": 51962,
+   "file": "assets/maps__mp__gametypes___globallogic.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_actor.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6542383,
+   "size": 4242,
+   "file": "assets/maps__mp__gametypes___globallogic_actor.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_audio.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6546679,
+   "size": 18670,
+   "file": "assets/maps__mp__gametypes___globallogic_audio.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_defaults.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6565406,
+   "size": 5649,
+   "file": "assets/maps__mp__gametypes___globallogic_defaults.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_player.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6571110,
+   "size": 50806,
+   "file": "assets/maps__mp__gametypes___globallogic_player.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_score.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6621970,
+   "size": 22905,
+   "file": "assets/maps__mp__gametypes___globallogic_score.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_spawn.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6644929,
+   "size": 14490,
+   "file": "assets/maps__mp__gametypes___globallogic_spawn.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_ui.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6659470,
+   "size": 10338,
+   "file": "assets/maps__mp__gametypes___globallogic_ui.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_utils.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6669862,
+   "size": 7030,
+   "file": "assets/maps__mp__gametypes___globallogic_utils.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_globallogic_vehicle.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6676948,
+   "size": 6693,
+   "file": "assets/maps__mp__gametypes___globallogic_vehicle.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_healthoverlay.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6683691,
+   "size": 3347,
+   "file": "assets/maps__mp__gametypes___healthoverlay.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_hostmigration.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6687088,
+   "size": 5257,
+   "file": "assets/maps__mp__gametypes___hostmigration.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_hud.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6692385,
+   "size": 3527,
+   "file": "assets/maps__mp__gametypes___hud.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_hud_message.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6695960,
+   "size": 22423,
+   "file": "assets/maps__mp__gametypes___hud_message.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_hud_util.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6718428,
+   "size": 15634,
+   "file": "assets/maps__mp__gametypes___hud_util.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_killcam.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6734106,
+   "size": 12106,
+   "file": "assets/maps__mp__gametypes___killcam.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_menus.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6746254,
+   "size": 3813,
+   "file": "assets/maps__mp__gametypes___menus.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_objpoints.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6750113,
+   "size": 2426,
+   "file": "assets/maps__mp__gametypes___objpoints.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_perplayer.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6752585,
+   "size": 2520,
+   "file": "assets/maps__mp__gametypes___perplayer.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_persistence.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6755153,
+   "size": 10335,
+   "file": "assets/maps__mp__gametypes___persistence.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_rank.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6765529,
+   "size": 15046,
+   "file": "assets/maps__mp__gametypes___rank.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_scoreboard.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6780622,
+   "size": 466,
+   "file": "assets/maps__mp__gametypes___scoreboard.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_serversettings.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6781139,
+   "size": 3149,
+   "file": "assets/maps__mp__gametypes___serversettings.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_shellshock.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6784335,
+   "size": 1198,
+   "file": "assets/maps__mp__gametypes___shellshock.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_spawning.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6785578,
+   "size": 30769,
+   "file": "assets/maps__mp__gametypes___spawning.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_spawnlogic.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6816394,
+   "size": 28354,
+   "file": "assets/maps__mp__gametypes___spawnlogic.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_spectating.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6844795,
+   "size": 3241,
+   "file": "assets/maps__mp__gametypes___spectating.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_tweakables.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6848083,
+   "size": 6906,
+   "file": "assets/maps__mp__gametypes___tweakables.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_wager.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6855031,
+   "size": 15933,
+   "file": "assets/maps__mp__gametypes___wager.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_weapon_utils.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6871013,
+   "size": 1530,
+   "file": "assets/maps__mp__gametypes___weapon_utils.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_weapons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6872587,
+   "size": 32444,
+   "file": "assets/maps__mp__gametypes___weapons.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_weaponobjects.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6905081,
+   "size": 40677,
+   "file": "assets/maps__mp__gametypes___weaponobjects.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/bwars.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6945799,
+   "size": 25483,
+   "file": "assets/maps__mp__gametypes__bwars.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/conf.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6971322,
+   "size": 12617,
+   "file": "assets/maps__mp__gametypes__conf.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/ctf.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 6983978,
+   "size": 30529,
+   "file": "assets/maps__mp__gametypes__ctf.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/dm.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7014545,
+   "size": 4162,
+   "file": "assets/maps__mp__gametypes__dm.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/dem.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7018746,
+   "size": 28033,
+   "file": "assets/maps__mp__gametypes__dem.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/dom.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7046818,
+   "size": 30430,
+   "file": "assets/maps__mp__gametypes__dom.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/gun.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7077287,
+   "size": 10010,
+   "file": "assets/maps__mp__gametypes__gun.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/hack.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7087337,
+   "size": 23776,
+   "file": "assets/maps__mp__gametypes__hack.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/hq.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7111151,
+   "size": 25241,
+   "file": "assets/maps__mp__gametypes__hq.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/hun.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7136431,
+   "size": 8845,
+   "file": "assets/maps__mp__gametypes__hun.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/sas.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7145315,
+   "size": 7310,
+   "file": "assets/maps__mp__gametypes__sas.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/koth.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7152665,
+   "size": 28501,
+   "file": "assets/maps__mp__gametypes__koth.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/oic.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7181205,
+   "size": 8102,
+   "file": "assets/maps__mp__gametypes__oic.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/pur.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7189346,
+   "size": 9831,
+   "file": "assets/maps__mp__gametypes__pur.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/res.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7199216,
+   "size": 27894,
+   "file": "assets/maps__mp__gametypes__res.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/sab.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7227149,
+   "size": 21484,
+   "file": "assets/maps__mp__gametypes__sab.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/sd.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7248671,
+   "size": 22409,
+   "file": "assets/maps__mp__gametypes__sd.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/shrp.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7271120,
+   "size": 14757,
+   "file": "assets/maps__mp__gametypes__shrp.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/tag.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7285916,
+   "size": 10058,
+   "file": "assets/maps__mp__gametypes__tag.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/tdm.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7296013,
+   "size": 6338,
+   "file": "assets/maps__mp__gametypes__tdm.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/tdef.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7302391,
+   "size": 12942,
+   "file": "assets/maps__mp__gametypes__tdef.gsc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/bwars.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7315383,
+   "size": 202,
+   "file": "assets/clientscripts__mp__gametypes__bwars.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/conf.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7315634,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__conf.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/ctf.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7315880,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__ctf.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/dm.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7316125,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__dm.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/dem.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7316371,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__dem.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/dom.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7316617,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__dom.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/gun.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7316863,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__gun.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/hack.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7317110,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__hack.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/hq.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7317355,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__hq.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/hun.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7317601,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__hun.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/sas.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7317847,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__sas.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/koth.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7318094,
+   "size": 1653,
+   "file": "assets/clientscripts__mp__gametypes__koth.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/oic.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7319795,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__oic.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/pur.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7320041,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__pur.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/res.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7320287,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__res.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/sab.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7320533,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__sab.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/sd.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7320778,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__sd.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/shrp.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7321025,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__shrp.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/tag.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7321271,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__tag.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/tdm.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7321517,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__tdm.csc"
+  },
+  {
+   "name": "clientscripts/mp/gametypes/tdef.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7321764,
+   "size": 198,
+   "file": "assets/clientscripts__mp__gametypes__tdef.csc"
+  },
+  {
+   "name": "maps/mp/gametypes/_pregame.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7322006,
+   "size": 7366,
+   "file": "assets/maps__mp__gametypes___pregame.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_straferun.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7329420,
+   "size": 19375,
+   "file": "assets/maps__mp__killstreaks___straferun.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_ai_tank.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7348841,
+   "size": 26177,
+   "file": "assets/maps__mp__killstreaks___ai_tank.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_airsupport.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7375067,
+   "size": 14426,
+   "file": "assets/maps__mp__killstreaks___airsupport.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_emp.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7389535,
+   "size": 9305,
+   "file": "assets/maps__mp__killstreaks___emp.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_helicopter.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7398889,
+   "size": 46429,
+   "file": "assets/maps__mp__killstreaks___helicopter.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_helicopter_guard.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7445373,
+   "size": 16646,
+   "file": "assets/maps__mp__killstreaks___helicopter_guard.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_helicopter_gunner.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7462075,
+   "size": 31978,
+   "file": "assets/maps__mp__killstreaks___helicopter_gunner.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_killstreakrules.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7494107,
+   "size": 9734,
+   "file": "assets/maps__mp__killstreaks___killstreakrules.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_killstreaks.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7503891,
+   "size": 30741,
+   "file": "assets/maps__mp__killstreaks___killstreaks.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_killstreak_weapons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7534689,
+   "size": 9202,
+   "file": "assets/maps__mp__killstreaks___killstreak_weapons.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_missile_swarm.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7543943,
+   "size": 13473,
+   "file": "assets/maps__mp__killstreaks___missile_swarm.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_missile_drone.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7557468,
+   "size": 12131,
+   "file": "assets/maps__mp__killstreaks___missile_drone.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_planemortar.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7569649,
+   "size": 8086,
+   "file": "assets/maps__mp__killstreaks___planemortar.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_qrdrone.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7577781,
+   "size": 27413,
+   "file": "assets/maps__mp__killstreaks___qrdrone.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_radar.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7605238,
+   "size": 6425,
+   "file": "assets/maps__mp__killstreaks___radar.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_rcbomb.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7611708,
+   "size": 15350,
+   "file": "assets/maps__mp__killstreaks___rcbomb.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_remote_weapons.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7627111,
+   "size": 8794,
+   "file": "assets/maps__mp__killstreaks___remote_weapons.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_remotemissile.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7635957,
+   "size": 20484,
+   "file": "assets/maps__mp__killstreaks___remotemissile.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_remotemortar.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7656492,
+   "size": 17317,
+   "file": "assets/maps__mp__killstreaks___remotemortar.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_spyplane.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7673856,
+   "size": 18411,
+   "file": "assets/maps__mp__killstreaks___spyplane.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_supplycrate.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7692317,
+   "size": 149,
+   "file": "assets/maps__mp__killstreaks___supplycrate.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_supplydrop.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7692515,
+   "size": 51761,
+   "file": "assets/maps__mp__killstreaks___supplydrop.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_turret_killstreak.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7744332,
+   "size": 45990,
+   "file": "assets/maps__mp__killstreaks___turret_killstreak.gsc"
+  },
+  {
+   "name": "maps/mp/teams/_teams.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7790360,
+   "size": 6226,
+   "file": "assets/maps__mp__teams___teams.gsc"
+  },
+  {
+   "name": "maps/mp/teams/_teamset.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7796626,
+   "size": 494,
+   "file": "assets/maps__mp__teams___teamset.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7797155,
+   "size": 37189,
+   "file": "assets/maps__mp__bots___bot.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_combat.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7834386,
+   "size": 25357,
+   "file": "assets/maps__mp__bots___bot_combat.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_conf.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7859783,
+   "size": 1690,
+   "file": "assets/maps__mp__bots___bot_conf.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_ctf.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7861512,
+   "size": 6434,
+   "file": "assets/maps__mp__bots___bot_ctf.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_dem.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7867985,
+   "size": 5644,
+   "file": "assets/maps__mp__bots___bot_dem.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_dom.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7873668,
+   "size": 6915,
+   "file": "assets/maps__mp__bots___bot_dom.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_hack.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7880623,
+   "size": 2963,
+   "file": "assets/maps__mp__bots___bot_hack.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_hq.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7883624,
+   "size": 6451,
+   "file": "assets/maps__mp__bots___bot_hq.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_koth.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7890115,
+   "size": 5574,
+   "file": "assets/maps__mp__bots___bot_koth.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_loadout.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7895732,
+   "size": 9097,
+   "file": "assets/maps__mp__bots___bot_loadout.gsc"
+  },
+  {
+   "name": "maps/mp/bots/_bot_sd.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 7904867,
+   "size": 7255,
+   "file": "assets/maps__mp__bots___bot_sd.gsc"
+  },
+  {
+   "name": "clientscripts/mp/_acousticsensor.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7912172,
+   "size": 2209,
+   "file": "assets/clientscripts__mp___acousticsensor.csc"
+  },
+  {
+   "name": "clientscripts/mp/_ai_tank.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7914424,
+   "size": 5382,
+   "file": "assets/clientscripts__mp___ai_tank.csc"
+  },
+  {
+   "name": "clientscripts/mp/_airsupport.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7919852,
+   "size": 6265,
+   "file": "assets/clientscripts__mp___airsupport.csc"
+  },
+  {
+   "name": "clientscripts/mp/_ambient.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7926160,
+   "size": 8583,
+   "file": "assets/clientscripts__mp___ambient.csc"
+  },
+  {
+   "name": "clientscripts/mp/_ambientpackage.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7934793,
+   "size": 16165,
+   "file": "assets/clientscripts__mp___ambientpackage.csc"
+  },
+  {
+   "name": "clientscripts/mp/_audio.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7950999,
+   "size": 14603,
+   "file": "assets/clientscripts__mp___audio.csc"
+  },
+  {
+   "name": "clientscripts/mp/_bouncingbetty.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7965651,
+   "size": 1554,
+   "file": "assets/clientscripts__mp___bouncingbetty.csc"
+  },
+  {
+   "name": "clientscripts/mp/_burnplayer.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7967251,
+   "size": 806,
+   "file": "assets/clientscripts__mp___burnplayer.csc"
+  },
+  {
+   "name": "clientscripts/mp/_busing.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7968099,
+   "size": 2654,
+   "file": "assets/clientscripts__mp___busing.csc"
+  },
+  {
+   "name": "clientscripts/mp/_callbacks.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7970798,
+   "size": 10714,
+   "file": "assets/clientscripts__mp___callbacks.csc"
+  },
+  {
+   "name": "clientscripts/mp/_cameraspike.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7981559,
+   "size": 3718,
+   "file": "assets/clientscripts__mp___cameraspike.csc"
+  },
+  {
+   "name": "clientscripts/mp/_claymore.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7985321,
+   "size": 645,
+   "file": "assets/clientscripts__mp___claymore.csc"
+  },
+  {
+   "name": "clientscripts/mp/_counteruav.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7986012,
+   "size": 814,
+   "file": "assets/clientscripts__mp___counteruav.csc"
+  },
+  {
+   "name": "clientscripts/mp/_ctf.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7986865,
+   "size": 458,
+   "file": "assets/clientscripts__mp___ctf.csc"
+  },
+  {
+   "name": "clientscripts/mp/_destructible.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7987371,
+   "size": 586,
+   "file": "assets/clientscripts__mp___destructible.csc"
+  },
+  {
+   "name": "clientscripts/mp/_rotating_object.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7988008,
+   "size": 915,
+   "file": "assets/clientscripts__mp___rotating_object.csc"
+  },
+  {
+   "name": "clientscripts/mp/_decoy.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7988964,
+   "size": 593,
+   "file": "assets/clientscripts__mp___decoy.csc"
+  },
+  {
+   "name": "clientscripts/mp/_dogs.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7989597,
+   "size": 5833,
+   "file": "assets/clientscripts__mp___dogs.csc"
+  },
+  {
+   "name": "clientscripts/mp/_explode.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7995473,
+   "size": 2173,
+   "file": "assets/clientscripts__mp___explode.csc"
+  },
+  {
+   "name": "clientscripts/mp/_explosive_bolt.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7997696,
+   "size": 2090,
+   "file": "assets/clientscripts__mp___explosive_bolt.csc"
+  },
+  {
+   "name": "clientscripts/mp/_filter.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 7999828,
+   "size": 1926,
+   "file": "assets/clientscripts__mp___filter.csc"
+  },
+  {
+   "name": "clientscripts/mp/_footsteps.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8001799,
+   "size": 3743,
+   "file": "assets/clientscripts__mp___footsteps.csc"
+  },
+  {
+   "name": "clientscripts/mp/_fx.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8005580,
+   "size": 9474,
+   "file": "assets/clientscripts__mp___fx.csc"
+  },
+  {
+   "name": "clientscripts/mp/_fxanim.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8015096,
+   "size": 5142,
+   "file": "assets/clientscripts__mp___fxanim.csc"
+  },
+  {
+   "name": "clientscripts/mp/_global_fx.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8020283,
+   "size": 5599,
+   "file": "assets/clientscripts__mp___global_fx.csc"
+  },
+  {
+   "name": "clientscripts/mp/_helicopter.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8025928,
+   "size": 6538,
+   "file": "assets/clientscripts__mp___helicopter.csc"
+  },
+  {
+   "name": "clientscripts/mp/_helicopter_sounds.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8032519,
+   "size": 20009,
+   "file": "assets/clientscripts__mp___helicopter_sounds.csc"
+  },
+  {
+   "name": "clientscripts/mp/_lights.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8052570,
+   "size": 16681,
+   "file": "assets/clientscripts__mp___lights.csc"
+  },
+  {
+   "name": "clientscripts/mp/_load.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8069291,
+   "size": 5525,
+   "file": "assets/clientscripts__mp___load.csc"
+  },
+  {
+   "name": "clientscripts/mp/_missile_swarm.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8074865,
+   "size": 2766,
+   "file": "assets/clientscripts__mp___missile_swarm.csc"
+  },
+  {
+   "name": "clientscripts/mp/_missile_drone.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8077680,
+   "size": 2645,
+   "file": "assets/clientscripts__mp___missile_drone.csc"
+  },
+  {
+   "name": "clientscripts/mp/_multi_extracam.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8080375,
+   "size": 982,
+   "file": "assets/clientscripts__mp___multi_extracam.csc"
+  },
+  {
+   "name": "clientscripts/mp/_music.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8081398,
+   "size": 8746,
+   "file": "assets/clientscripts__mp___music.csc"
+  },
+  {
+   "name": "clientscripts/mp/_planemortar.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8090191,
+   "size": 706,
+   "file": "assets/clientscripts__mp___planemortar.csc"
+  },
+  {
+   "name": "clientscripts/mp/_players.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8090940,
+   "size": 1529,
+   "file": "assets/clientscripts__mp___players.csc"
+  },
+  {
+   "name": "clientscripts/mp/_qrdrone.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8092512,
+   "size": 6762,
+   "file": "assets/clientscripts__mp___qrdrone.csc"
+  },
+  {
+   "name": "clientscripts/mp/_rcbomb.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8099316,
+   "size": 11337,
+   "file": "assets/clientscripts__mp___rcbomb.csc"
+  },
+  {
+   "name": "clientscripts/mp/_remotemissile.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8110702,
+   "size": 1830,
+   "file": "assets/clientscripts__mp___remotemissile.csc"
+  },
+  {
+   "name": "clientscripts/mp/_rewindobjects.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8112581,
+   "size": 4158,
+   "file": "assets/clientscripts__mp___rewindobjects.csc"
+  },
+  {
+   "name": "clientscripts/mp/_riotshield.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8116785,
+   "size": 2062,
+   "file": "assets/clientscripts__mp___riotshield.csc"
+  },
+  {
+   "name": "clientscripts/mp/_satchel_charge.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8118897,
+   "size": 1550,
+   "file": "assets/clientscripts__mp___satchel_charge.csc"
+  },
+  {
+   "name": "clientscripts/mp/_scrambler.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8120492,
+   "size": 6834,
+   "file": "assets/clientscripts__mp___scrambler.csc"
+  },
+  {
+   "name": "clientscripts/mp/_sticky_grenade.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8127376,
+   "size": 2142,
+   "file": "assets/clientscripts__mp___sticky_grenade.csc"
+  },
+  {
+   "name": "clientscripts/mp/_proximity_grenade.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8129571,
+   "size": 4597,
+   "file": "assets/clientscripts__mp___proximity_grenade.csc"
+  },
+  {
+   "name": "clientscripts/mp/_tacticalinsertion.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8134221,
+   "size": 2329,
+   "file": "assets/clientscripts__mp___tacticalinsertion.csc"
+  },
+  {
+   "name": "clientscripts/mp/_teamset_seals.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8136599,
+   "size": 210,
+   "file": "assets/clientscripts__mp___teamset_seals.csc"
+  },
+  {
+   "name": "clientscripts/mp/_treadfx.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8136852,
+   "size": 2685,
+   "file": "assets/clientscripts__mp___treadfx.csc"
+  },
+  {
+   "name": "clientscripts/mp/_trophy_system.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8139586,
+   "size": 2666,
+   "file": "assets/clientscripts__mp___trophy_system.csc"
+  },
+  {
+   "name": "clientscripts/mp/_turret.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8142294,
+   "size": 1982,
+   "file": "assets/clientscripts__mp___turret.csc"
+  },
+  {
+   "name": "clientscripts/mp/_utility.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8144319,
+   "size": 12672,
+   "file": "assets/clientscripts__mp___utility.csc"
+  },
+  {
+   "name": "clientscripts/mp/_utility_code.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8157039,
+   "size": 1597,
+   "file": "assets/clientscripts__mp___utility_code.csc"
+  },
+  {
+   "name": "clientscripts/mp/_vehicle.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8158679,
+   "size": 4857,
+   "file": "assets/clientscripts__mp___vehicle.csc"
+  },
+  {
+   "name": "clientscripts/_radiant_live_update.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8163588,
+   "size": 489,
+   "file": "assets/clientscripts___radiant_live_update.csc"
+  },
+  {
+   "name": "codescripts/struct.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8164113,
+   "size": 418,
+   "file": "assets/codescripts__struct.csc"
+  },
+  {
+   "name": "codescripts/delete.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8164567,
+   "size": 566,
+   "file": "assets/codescripts__delete.csc"
+  },
+  {
+   "name": "codescripts/delete.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8165169,
+   "size": 566,
+   "file": "assets/codescripts__delete.gsc"
+  },
+  {
+   "name": "codescripts/struct.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8165771,
+   "size": 669,
+   "file": "assets/codescripts__struct.gsc"
+  },
+  {
+   "name": "maps/mp/teams/_teamset_multiteam.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8166490,
+   "size": 7571,
+   "file": "assets/maps__mp__teams___teamset_multiteam.gsc"
+  },
+  {
+   "name": "maps/mp/mp_carrier.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8174097,
+   "size": 5212,
+   "file": "assets/maps__mp__mp_carrier.gsc"
+  },
+  {
+   "name": "maps/mp/mp_dockside.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8179346,
+   "size": 4465,
+   "file": "assets/maps__mp__mp_dockside.gsc"
+  },
+  {
+   "name": "maps/mp/mp_dockside_crane.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8183854,
+   "size": 14148,
+   "file": "assets/maps__mp__mp_dockside_crane.gsc"
+  },
+  {
+   "name": "maps/mp/mp_express_train.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8198044,
+   "size": 10729,
+   "file": "assets/maps__mp__mp_express_train.gsc"
+  },
+  {
+   "name": "maps/mp/mp_nightclub.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8208811,
+   "size": 5286,
+   "file": "assets/maps__mp__mp_nightclub.gsc"
+  },
+  {
+   "name": "maps/mp/mp_village.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8214133,
+   "size": 4902,
+   "file": "assets/maps__mp__mp_village.gsc"
+  },
+  {
+   "name": "maps/mp/mp_overflow.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8219072,
+   "size": 5804,
+   "file": "assets/maps__mp__mp_overflow.gsc"
+  },
+  {
+   "name": "maps/mp/mp_la.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8224907,
+   "size": 4970,
+   "file": "assets/maps__mp__mp_la.gsc"
+  },
+  {
+   "name": "maps/mp/mp_meltdown.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8229914,
+   "size": 1872,
+   "file": "assets/maps__mp__mp_meltdown.gsc"
+  },
+  {
+   "name": "maps/mp/mp_drone.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8231820,
+   "size": 4409,
+   "file": "assets/maps__mp__mp_drone.gsc"
+  },
+  {
+   "name": "maps/mp/mp_express.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8236265,
+   "size": 2357,
+   "file": "assets/maps__mp__mp_express.gsc"
+  },
+  {
+   "name": "maps/mp/mp_hijacked.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8238659,
+   "size": 6092,
+   "file": "assets/maps__mp__mp_hijacked.gsc"
+  },
+  {
+   "name": "maps/mp/mp_raid.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8244784,
+   "size": 3574,
+   "file": "assets/maps__mp__mp_raid.gsc"
+  },
+  {
+   "name": "maps/mp/mp_slums.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8248392,
+   "size": 9356,
+   "file": "assets/maps__mp__mp_slums.gsc"
+  },
+  {
+   "name": "maps/mp/mp_socotra.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8257784,
+   "size": 3513,
+   "file": "assets/maps__mp__mp_socotra.gsc"
+  },
+  {
+   "name": "maps/mp/mp_turbine.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8261333,
+   "size": 4463,
+   "file": "assets/maps__mp__mp_turbine.gsc"
+  },
+  {
+   "name": "maps/mp/mp_nuketown_2020.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8265838,
+   "size": 13300,
+   "file": "assets/maps__mp__mp_nuketown_2020.gsc"
+  },
+  {
+   "name": "maps/mp/mp_downhill_cablecar.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8279184,
+   "size": 13137,
+   "file": "assets/maps__mp__mp_downhill_cablecar.gsc"
+  },
+  {
+   "name": "maps/mp/mp_downhill.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8292358,
+   "size": 2732,
+   "file": "assets/maps__mp__mp_downhill.gsc"
+  },
+  {
+   "name": "maps/mp/mp_hydro.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8295124,
+   "size": 12293,
+   "file": "assets/maps__mp__mp_hydro.gsc"
+  },
+  {
+   "name": "maps/mp/mp_skate.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8307451,
+   "size": 2460,
+   "file": "assets/maps__mp__mp_skate.gsc"
+  },
+  {
+   "name": "maps/mp/mp_mirage.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8309946,
+   "size": 2036,
+   "file": "assets/maps__mp__mp_mirage.gsc"
+  },
+  {
+   "name": "clientscripts/mp/mp_express.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8312027,
+   "size": 3229,
+   "file": "assets/clientscripts__mp__mp_express.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_dockside.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8315302,
+   "size": 1665,
+   "file": "assets/clientscripts__mp__mp_dockside.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_drone_fx.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8317013,
+   "size": 9789,
+   "file": "assets/clientscripts__mp__mp_drone_fx.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_hydro.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8326845,
+   "size": 6301,
+   "file": "assets/clientscripts__mp__mp_hydro.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_overflow.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8333192,
+   "size": 782,
+   "file": "assets/clientscripts__mp__mp_overflow.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_carrier.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8334019,
+   "size": 2063,
+   "file": "assets/clientscripts__mp__mp_carrier.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_nuketown_2020.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8336133,
+   "size": 3329,
+   "file": "assets/clientscripts__mp__mp_nuketown_2020.csc"
+  },
+  {
+   "name": "clientscripts/mp/mp_raid.csc",
+   "kind": "rawfile",
+   "ext": "csc",
+   "stream_offset": 8339504,
+   "size": 746,
+   "file": "assets/clientscripts__mp__mp_raid.csc"
+  },
+  {
+   "name": "maps/mp/animscripts/dog_combat.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8340298,
+   "size": 2505,
+   "file": "assets/maps__mp__animscripts__dog_combat.gsc"
+  },
+  {
+   "name": "maps/mp/animscripts/dog_init.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8342849,
+   "size": 1743,
+   "file": "assets/maps__mp__animscripts__dog_init.gsc"
+  },
+  {
+   "name": "maps/mp/killstreaks/_dogs.gsc",
+   "kind": "rawfile",
+   "ext": "gsc",
+   "stream_offset": 8344635,
+   "size": 15758,
+   "file": "assets/maps__mp__killstreaks___dogs.gsc"
+  },
+  {
+   "name": "maps/mp/gametypes/_gametypes.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141274,
+   "size": 110,
+   "file": "assets/maps__mp__gametypes___gametypes.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/bwars.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141425,
+   "size": 67,
+   "file": "assets/maps__mp__gametypes__bwars.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/dm.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141530,
+   "size": 65,
+   "file": "assets/maps__mp__gametypes__dm.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/dom.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141634,
+   "size": 66,
+   "file": "assets/maps__mp__gametypes__dom.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/conf.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141740,
+   "size": 55,
+   "file": "assets/maps__mp__gametypes__conf.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/ctf.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141834,
+   "size": 78,
+   "file": "assets/maps__mp__gametypes__ctf.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/hack.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9141952,
+   "size": 61,
+   "file": "assets/maps__mp__gametypes__hack.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/hq.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142051,
+   "size": 79,
+   "file": "assets/maps__mp__gametypes__hq.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/hun.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142169,
+   "size": 58,
+   "file": "assets/maps__mp__gametypes__hun.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/res.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142266,
+   "size": 66,
+   "file": "assets/maps__mp__gametypes__res.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/sd.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142370,
+   "size": 89,
+   "file": "assets/maps__mp__gametypes__sd.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/sab.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142498,
+   "size": 62,
+   "file": "assets/maps__mp__gametypes__sab.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/tdm.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142599,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__tdm.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/koth.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142691,
+   "size": 55,
+   "file": "assets/maps__mp__gametypes__koth.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/tag.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142785,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__tag.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/tdef.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142877,
+   "size": 55,
+   "file": "assets/maps__mp__gametypes__tdef.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/sur.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9142971,
+   "size": 50,
+   "file": "assets/maps__mp__gametypes__sur.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/dem.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143060,
+   "size": 66,
+   "file": "assets/maps__mp__gametypes__dem.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/oic.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143165,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__oic.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/pur.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143256,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__pur.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/wkh.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143347,
+   "size": 91,
+   "file": "assets/maps__mp__gametypes__wkh.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/cp.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143476,
+   "size": 37,
+   "file": "assets/maps__mp__gametypes__cp.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/nvc.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143552,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__nvc.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/wdom.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143644,
+   "size": 55,
+   "file": "assets/maps__mp__gametypes__wdom.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/sas.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143738,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__sas.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/gun.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143829,
+   "size": 52,
+   "file": "assets/maps__mp__gametypes__gun.txt"
+  },
+  {
+   "name": "maps/mp/gametypes/shrp.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9143921,
+   "size": 55,
+   "file": "assets/maps__mp__gametypes__shrp.txt"
+  },
+  {
+   "name": "expressions/functions.txt",
+   "kind": "rawfile",
+   "ext": "txt",
+   "stream_offset": 9144015,
+   "size": 12567,
+   "file": "assets/expressions__functions.txt"
+  },
+  {
+   "name": "mp/webm_settings_high.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 9197112,
+   "size": 100,
+   "file": "assets/mp__webm_settings_high.cfg"
+  },
+  {
+   "name": "mp/webm_settings_low.cfg",
+   "kind": "rawfile",
+   "ext": "cfg",
+   "stream_offset": 9197250,
+   "size": 100,
+   "file": "assets/mp__webm_settings_low.cfg"
+  },
+  {
+   "name": "rumble/assault_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10586618,
+   "size": 111,
+   "file": "assets/rumble__assault_fire_h.rmb"
+  },
+  {
+   "name": "rumble/assault_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10586768,
+   "size": 82,
+   "file": "assets/rumble__assault_fire_l.rmb"
+  },
+  {
+   "name": "rumble/damage_heavy_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10587073,
+   "size": 67,
+   "file": "assets/rumble__damage_heavy_h.rmb"
+  },
+  {
+   "name": "rumble/damage_heavy_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10587179,
+   "size": 82,
+   "file": "assets/rumble__damage_heavy_l.rmb"
+  },
+  {
+   "name": "rumble/damage_light_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10587484,
+   "size": 67,
+   "file": "assets/rumble__damage_light_h.rmb"
+  },
+  {
+   "name": "rumble/damage_light_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10587590,
+   "size": 82,
+   "file": "assets/rumble__damage_light_l.rmb"
+  },
+  {
+   "name": "rumble/defaultweapon_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10587919,
+   "size": 127,
+   "file": "assets/rumble__defaultweapon_fire_h.rmb"
+  },
+  {
+   "name": "rumble/defaultweapon_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10588091,
+   "size": 82,
+   "file": "assets/rumble__defaultweapon_fire_l.rmb"
+  },
+  {
+   "name": "rumble/defaultweapon_melee_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10588424,
+   "size": 97,
+   "file": "assets/rumble__defaultweapon_melee_h.rmb"
+  },
+  {
+   "name": "rumble/defaultweapon_melee_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10588567,
+   "size": 82,
+   "file": "assets/rumble__defaultweapon_melee_l.rmb"
+  },
+  {
+   "name": "rumble/heavygun_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10588876,
+   "size": 127,
+   "file": "assets/rumble__heavygun_fire_h.rmb"
+  },
+  {
+   "name": "rumble/heavygun_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10589043,
+   "size": 82,
+   "file": "assets/rumble__heavygun_fire_l.rmb"
+  },
+  {
+   "name": "rumble/lmg_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10589332,
+   "size": 110,
+   "file": "assets/rumble__lmg_fire_h.rmb"
+  },
+  {
+   "name": "rumble/lmg_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10589477,
+   "size": 82,
+   "file": "assets/rumble__lmg_fire_l.rmb"
+  },
+  {
+   "name": "rumble/pistol_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10589778,
+   "size": 82,
+   "file": "assets/rumble__pistol_fire_h.rmb"
+  },
+  {
+   "name": "rumble/pistol_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10589898,
+   "size": 82,
+   "file": "assets/rumble__pistol_fire_l.rmb"
+  },
+  {
+   "name": "rumble/shotgun_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10590203,
+   "size": 82,
+   "file": "assets/rumble__shotgun_fire_h.rmb"
+  },
+  {
+   "name": "rumble/shotgun_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10590324,
+   "size": 82,
+   "file": "assets/rumble__shotgun_fire_l.rmb"
+  },
+  {
+   "name": "rumble/smg_fire_h.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10590613,
+   "size": 97,
+   "file": "assets/rumble__smg_fire_h.rmb"
+  },
+  {
+   "name": "rumble/smg_fire_l.rmb",
+   "kind": "rawfile",
+   "ext": "rmb",
+   "stream_offset": 10590745,
+   "size": 82,
+   "file": "assets/rumble__smg_fire_l.rmb"
+  },
+  {
+   "name": "sound/patch.csv",
+   "kind": "rawfile",
+   "ext": "csv",
+   "stream_offset": 12425645,
+   "size": 1042,
+   "file": "assets/sound__patch.csv"
+  },
+  {
+   "name": "ui_mp/t6/menus/checkclasses.lua",
+   "kind": "rawfile",
+   "ext": "lua",
+   "stream_offset": 13943928,
+   "size": 6642,
+   "file": "assets/ui_mp__t6__menus__checkclasses.lua"
+  }
+ ]
+}

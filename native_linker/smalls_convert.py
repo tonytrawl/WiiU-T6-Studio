@@ -21,6 +21,37 @@ def _default_reloc(v):
     return v
 
 
+# FIX B (glass/skybox handoff 2026-07-18, boot-53 class): top-level asset NAME
+# words emitted as rtmap-computed dedup aliases can drift -> the asset registers
+# under a garbage/truncated name -> the engine's lookup misses -> silent
+# DEFAULT-asset substitution (skybox -> mc/global_black; lightdefs -> garbage
+# names). Pipeline rule: when the PC name word is a dedup ALIAS, re-emit it
+# INLINE (FOLLOW + string). The assembler (produce_nobackbone) installs the
+# resolver; standalone/oracle-reproduction use keeps it None (no behavior
+# change, byte-exact vs genuine).
+INLINE_NAME_RESOLVER = None      # PC b5-alias word -> name bytes | None
+
+
+def _inline_name(s, off, word_out_pos=0):
+    """Emit the root NAME payload for the converter at its name sequence point.
+    FOLLOW/INSERT -> copy the PC string (unchanged behavior). Dedup ALIAS with
+    a resolver installed -> rewrite the emitted word to FOLLOW and append the
+    resolved string (kills the name-drift class). Returns True if a string was
+    emitted."""
+    v = s.peek32(off)
+    if v in PTRS:
+        s.cstr()
+        return True
+    if INLINE_NAME_RESOLVER is None or not (0xA0000001 <= v <= 0xBFFFFFFF):
+        return False
+    nm = INLINE_NAME_RESOLVER(v)
+    if not nm:
+        return False
+    struct.pack_into('>I', s.b, word_out_pos, FOLLOW)
+    s.b += nm + b'\x00'
+    return True
+
+
 class Sw:
     """LE->BE emit helper over a PC buffer with an advancing cursor."""
     def __init__(self, pc, o, reloc):
@@ -88,9 +119,27 @@ SNDBANK_ALIASINDEX_ORACLE = None  # bytes: genuine aliasIndex array (BE), len ==
 # emit the genuine main-bank body verbatim (self-contained FOLLOW+inline, loader relinks it).
 # Keyed by the bank's walked name so it only replaces the intended bank.
 SNDBANK_MAIN_OVERLAY = None       # {bank_name: genuine_body_bytes} or None
+# Diagnostic/stopgap: emit the main bank with alias/radverb/duck tables EMPTIED (the
+# same structurally-valid shape author_english_bank's cross-map fallback uses). For maps
+# with NO genuine console reference (skate) the field-converted aliases carry PC
+# string-hashes where the console builds its own registration -> the AX voice callback
+# walks a dangling voice and faults at +0x3817ce. Emptying the tables removes the bad
+# registration (silent/limited SFX) so the map BOOTS; correct alias emission is the
+# follow-up. Set of bank names to empty (matched on the walked bank name).
+SNDBANK_EMPTY_ALIASES = None      # set([bank_name, ...]) or None
 SNDBANK_LOADEDASSETS_ORACLE = None  # (entryCount, dataSize) genuine console values; overrides
                                     # console_zone_fields (which is off for raid: our dataSize was
                                     # 749KB too big -> shifted downstream GEN_POLICY bodies -> wild ptr)
+# 2026-07-14 (skate sndcap boots 1-2): the loadedAssets HEAD carried swap32'd PC heap garbage in
+# the runtime-pointer/hash words, and PC's FOLLOW zone*/language* (@0x20/0x24) made us emit two
+# inline strings the CONSOLE loader does not consume (genuine banks never inline them; genuine
+# main banks bake pre-resolved b5 string pointers at 0x1264/0x1268, genuine english banks ship
+# -1/-1 and load fine). Result: the engine read wild zone/language pointers and the loaded-asset
+# fill ran unbounded past any capacity (crash just past cap in both boots). Sanitize to the
+# genuine-english-raid shape (byte-validated vs wiiu_ref/mp_raid_genuine.zone @0x45bea9e):
+# zero 0x20..0x28 / 0x830..0x840 / 0x940..0x94c / 0x1150..0x1164, set 0x1264..0x126c = FF,
+# suppress the two inline strings (folded into the zeroed data buffer -> size-preserving).
+SNDBANK_HEAD_SANITIZE = None      # set([bank_name, ...]) or None
 
 
 def _swapw(b):
@@ -163,26 +212,53 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
     (name_p, aliasCount, alias_p, aliasIndex_p, radverbCount, radverbs_p,
      duckCount, ducks_p) = struct.unpack_from('<8I', pc, off)
 
+    # emptied-alias stopgap (no genuine reference, e.g. skate): zero the alias/radverb/
+    # duck/scriptIdLookup counts+ptrs in the head and SUPPRESS the array bytes; the walk
+    # below still advances `o` through the PC arrays so the zone/language strings and the
+    # loadedAssets zeroed buffers emit at the right stream position. Removes the dangling
+    # voice registration that faults the AX callback at +0x3817ce.
+    empty = SNDBANK_EMPTY_ALIASES is not None and name in SNDBANK_EMPTY_ALIASES
+    sanitize = SNDBANK_HEAD_SANITIZE is not None and name in SNDBANK_HEAD_SANITIZE
+
     out = bytearray()
     out += _swapw(pc[off:off + body])           # fixed head (counts, bank headers)
+    # body+0x1290..0x1294 are per-byte runtime-default flags, NOT a swappable u32
+    # (0x1291 = load-error flag read by SND_BankLoadUpdateState @top; 0x1292 = the
+    # "has loaded/.sabl" flag). Console keeps them in PC byte order — genuine mp_raid
+    # console == PC verbatim here (00 00 01 00). The blanket _swapw reverses the word
+    # to 00 01 00 00, putting 1 on the error-flag byte -> SND_BankLoadUpdateState bails
+    # to BankLoadError before any file open -> "sound bank failed to load ... build
+    # problem" (skate boot, dump 37788). Raid dodged this via SNDBANK_MAIN_OVERLAY.
+    out[0x1290:0x1294] = pc[off + 0x1290:off + 0x1294]
+    if empty:
+        for _o8 in (4, 8, 12, 16, 20, 24, 28):  # alias/radverb/duck counts+ptrs
+            struct.pack_into('>I', out, _o8, 0)
     o = off + body
+    freed = [0]                                 # bytes suppressed under `empty`
 
-    def emit_string():                          # NUL-terminated string, verbatim
+    def emit_string(suppress=False):            # NUL-terminated string, verbatim
         nonlocal o
         nul = pc.index(b'\x00', o)
-        out.extend(pc[o:nul + 1]); o = nul + 1
+        if not suppress:
+            out.extend(pc[o:nul + 1])
+        else:
+            freed[0] += nul + 1 - o
+        o = nul + 1
 
     alias_i = 0                                 # global alias index (for the oracle)
     if name_p in PTRS:
         emit_string()
     if alias_p in PTRS:
         arr_s = o; o += aliasCount * _S.ALIASLIST
-        out += _swapw(pc[arr_s:o])              # SndAliasList[] array
+        if not empty:
+            out += _swapw(pc[arr_s:o])          # SndAliasList[] array
+        else:
+            freed[0] += aliasCount * _S.ALIASLIST
         for i in range(aliasCount):
             lname_p, lid, head_p, cnt, seq = struct.unpack_from(
                 '<5I', pc, arr_s + i * _S.ALIASLIST)
             if lname_p in PTRS:
-                emit_string()                   # list name
+                emit_string(empty)              # list name
             if head_p in PTRS:
                 ab = o; o += cnt * _S.ALIAS
                 for k in range(cnt):                # SndAlias[] array (field-aware)
@@ -195,16 +271,21 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
                         if struct.unpack_from('>I', ab_out, 0)[0] not in PTRS:
                             struct.pack_into('>I', ab_out, 0, nm_be)
                         struct.pack_into('>I', ab_out, 16, aid_be)  # assetId never FOLLOW
-                    out += ab_out
+                    if not empty:
+                        out += ab_out
+                    else:
+                        freed[0] += len(ab_out)
                     alias_i += 1
                 for k in range(cnt):
                     a = ab + k * _S.ALIAS
                     for po in (a + 0, a + 8, a + 12, a + 20):   # name/sub/sec/file
                         if u32(po) in PTRS:
-                            emit_string()
+                            emit_string(empty)
     if aliasIndex_p in PTRS:                       # SndIndexEntry{u16 value,u16 next}
         s = o; o += aliasCount * 4
-        if SNDBANK_ALIASINDEX_ORACLE is not None:  # genuine console-rebuilt hash table
+        if empty:
+            freed[0] += aliasCount * 4
+        elif SNDBANK_ALIASINDEX_ORACLE is not None:  # genuine console-rebuilt hash table
             out += SNDBANK_ALIASINDEX_ORACLE
         else:
             out += _swap16(pc[s:o])
@@ -214,23 +295,34 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
         # PC-derived table is a silent miss at worst, not the +0x3817ce wild-ptr crash.
     if radverbs_p in PTRS:
         rs = o; o += radverbCount * _S.RADVERB    # SndRadverb[] (name[32] verbatim)
+        if empty:
+            freed[0] += radverbCount * _S.RADVERB
         for i in range(radverbCount):
             r = rs + i * _S.RADVERB
-            out += _radverb_be(pc[r:r + _S.RADVERB])
+            if not empty:
+                out += _radverb_be(pc[r:r + _S.RADVERB])
     if ducks_p in PTRS:
         ds_s = o; o += duckCount * _S.DUCK        # SndDuck[] (name[32] verbatim)
+        if empty:
+            freed[0] += duckCount * _S.DUCK
         for i in range(duckCount):
             d = ds_s + i * _S.DUCK
-            out += _duck_be(pc[d:d + _S.DUCK])
+            if not empty:
+                out += _duck_be(pc[d:d + _S.DUCK])
         for i in range(duckCount):
             db = ds_s + i * _S.DUCK
             for po in (db + 64, db + 68):        # attenuation/filter -> 32 f32
                 if u32(po) in PTRS:
-                    s = o; o += 32 * 4; out += _swapw(pc[s:o])
+                    s = o; o += 32 * 4
+                    if not empty:
+                        out += _swapw(pc[s:o])
+                    else:
+                        freed[0] += 32 * 4
     # zone/language strings for each FOLLOW pointer in body[32..0x126c)
+    # (under `sanitize` the console loader must not see them -> suppress, size folded below)
     for po in range(32, 0x126c, 4):
         if u32(off + po) == FOLLOW:
-            emit_string()
+            emit_string(sanitize)
 
     ec = u32(off + 0x1270)
     ds = u32(off + 0x1278)
@@ -239,15 +331,34 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
         cec, cds = SNDBANK_LOADEDASSETS_ORACLE
     if u32(off + 0x1274) == FOLLOW:              # entries: zeroed capacity
         o += ec * 20; out += b'\x00' * (cec * 20)
-    if u32(off + 0x127c) == FOLLOW:              # data: zeroed runtime buffer
-        o += ds; out += b'\x00' * cds
     silc = u32(off + 0x1280)
+    if empty and u32(off + 0x1284) == FOLLOW:    # scriptIdLookups suppressed size
+        freed[0] += silc * 8
+    # SIZE-PRESERVING: fold the freed alias/index/radverb/duck/scriptId bytes into the
+    # loadedAssets zeroed data buffer so the emitted SndBank body is byte-length-identical
+    # to the non-emptied one -> the zone layout and the measured runtime map stay valid
+    # (no re-measure needed; the extra zeros are harmless runtime capacity).
+    cds_emit = cds + (freed[0] if (empty or sanitize) else 0)
+    if u32(off + 0x127c) == FOLLOW:              # data: zeroed runtime buffer
+        o += ds; out += b'\x00' * cds_emit
     if u32(off + 0x1284) == FOLLOW:
-        s = o; o += silc * 8; out += _swapw(pc[s:o])   # scriptIdLookups
+        s = o; o += silc * 8
+        if not empty:
+            out += _swapw(pc[s:o])                # scriptIdLookups
     assert o == end, (hex(o), hex(end))
     # loadedAssets counts: BIG-ENDIAN, console-sized
     struct.pack_into('>I', out, 0x1270, cec)
-    struct.pack_into('>I', out, 0x1278, cds)
+    struct.pack_into('>I', out, 0x1278, cds_emit)
+    if empty:                                     # scriptIdLookups reference alias idxs
+        struct.pack_into('>I', out, 0x1280, 0)    # -> emptied bank has none
+        struct.pack_into('>I', out, 0x1284, 0)
+    if sanitize:
+        # 2026-07-14 rev2 (boot 14 hang): zero ONLY the PC-heap-garbage runtime words (md5
+        # slots + baked-ptr slots; the build script re-bakes real values after authoring).
+        # Genuine MAIN banks keep FOLLOW+inline strings at +0x20/+0x24 — leave them intact
+        # (the earlier english-bank-shaped zeroing broke sound-bank mount registration).
+        for zs, ze in ((0x830, 0x840), (0x940, 0x94c), (0x1150, 0x1164), (0x1264, 0x126c)):
+            out[zs:ze] = b'\x00' * (ze - zs)
     # main bank: overlay the deployed .sab's checksum/hash blocks (the SndAssetBankHeader hashes;
     # @0x830 = .sab header @0x38 -- engine Sys_Error's on mismatch). ONLY these blocks, NOT the
     # loadedAssets counts (those stay ours so the walk sizing remains self-consistent).
@@ -362,8 +473,7 @@ def convert_xanim(pc, off, reloc=_default_reloc):
     s.ptr(10)                                  # names..deltaPart @64..100
     assert s.o == off + 104
     # ---- dynamic stream (probe order) ----
-    if p(0) == FOLLOW:
-        s.cstr()                               # name string
+    _inline_name(s, off)                       # FIX B: aliased name -> FOLLOW+string
     if p(64) in PTRS:
         s.u16(boneCount[9])                    # names: scriptstring u16s
     if p(96) in PTRS:
@@ -430,8 +540,7 @@ def convert_destructible(pc, off, reloc=_default_reloc):
     s.u32()                                    # numPieces
     s.ptr()                                    # pieces
     s.u32()                                    # clientOnly
-    if s.peek32(off) in PTRS:
-        s.cstr()                               # name
+    _inline_name(s, off)                       # FIX B: aliased name -> FOLLOW+string
     if s.peek32(off + 16) in PTRS:
         base = s.o
         for i in range(num):                   # 312-B piece bodies
@@ -472,29 +581,68 @@ def convert_physpreset(pc, off, reloc=_default_reloc):
     s.ptr()                                    # sndAliasPrefix @28
     s.u32(13)                                  # piecesSpreadFraction..buoyancyBoxMax
     assert s.o == off + 84
-    if s.peek32(off) in PTRS:
-        s.cstr()
+    _inline_name(s, off)                       # FIX B: aliased name -> FOLLOW+string
     if s.peek32(off + 28) in PTRS:
         s.cstr()
     return bytes(s.b), s.o
 
 
 # ---------------------------------------------------------------- GfxLightDef
+# Whole-body overlay (raid control, Track E): list of genuine GfxLightDef bodies. The raid
+# light cookie ships an 8KB resident inline image absent from base/mp that convert_image
+# stubs; emit the genuine body verbatim (compass/MATERIAL_BODY_OVERLAY pattern). The genuine
+# body's name is an ALIAS (not inline chars), so name-keying is impossible — substitution is
+# positional and only applied for the unambiguous single-lightdef case (raid has exactly 1).
+LIGHTDEF_BODY_OVERLAY = None
+
+
 def convert_lightdef(pc, off, reloc=_default_reloc):
     """GfxLightDef: 16-B body + name + inline GfxImage cookie (image converter)."""
     s = Sw(pc, off, reloc)
     s.ptr(3)                                   # name / attenuation.image / samplerState
     s.u32()                                    # lmapLookupStart
-    if s.peek32(off) in PTRS:
-        s.cstr()
+    v = s.peek32(off)
+    if v in PTRS:
+        s.cstr()                               # inline name string (PC order)
+    img = b''
     if s.peek32(off + 4) in PTRS:
-        body, nxt = MC.convert_image(pc, s.o, reloc)
-        s.b += body
+        img, nxt = MC.convert_image(pc, s.o, reloc)
         s.o = nxt
+    if (INLINE_NAME_RESOLVER is not None and v not in PTRS
+            and 0xA0000001 <= v <= 0xBFFFFFFF):
+        # FIX B (gfxtail43 lightdef class): the aliased name's PC payload
+        # targets the PC string-alloc region (uninvertable) — but the T6 rule
+        # 'GfxLightDef name == its attenuation image name' (raid lightdef rec
+        # 0x1083fc88) derives it AUTHORITATIVELY from the CONVERTED console
+        # image body (name FOLLOW @+320, string @+328). Generic PC-side
+        # resolution is the fallback.
+        nm = b''
+        if len(img) > 329 and struct.unpack_from('>I', img, 320)[0] == FOLLOW:
+            e = img.find(b'\x00', 328)
+            if e > 328 and all(0x20 <= c <= 0x7e for c in img[328:e]):
+                nm = bytes(img[328:e])
+        if not nm:
+            nm = INLINE_NAME_RESOLVER(v) or b''
+        if nm:
+            struct.pack_into('>I', s.b, 0, FOLLOW)
+            s.b += nm + b'\x00'                # name payload precedes the image
+    s.b += img
+    if LIGHTDEF_BODY_OVERLAY and len(LIGHTDEF_BODY_OVERLAY) == 1:
+        return LIGHTDEF_BODY_OVERLAY[0], s.o
     return bytes(s.b), s.o
 
 
 # ---------------------------------------------------------------- Glasses
+# Genuine-pointer transplant (raid control, Track E 2026-07-12): the 42 glassDef alias
+# words (glasses 1..42 -> glass 0's inline GlassDef) and body word @12 are INTRA-ASSET
+# runtime addresses that loader_sim's per-asset-linear runtime model cannot reproduce
+# (genuine glassDef rt is +3299 over linear; measured, underdetermined from one anchor —
+# Track 0/SPINE scope). Boot-proven fatal when wrong (~Glasses bisect, 2026-07-12).
+# For a map with a genuine ref, transplant the genuine word values positionally, exactly
+# like the SndBank alias oracle. dict {'w12': u32, 'glassdef': u32} or None.
+GLASSES_PTR_OVERLAY = None
+
+
 def convert_glasses(pc, off, reloc=_default_reloc):
     """Glasses: 56-B body + name + numGlasses x Glass(140) + per-glass
     inline GlassDef(60)/materials/FX/outline verts."""
@@ -504,7 +652,17 @@ def convert_glasses(pc, off, reloc=_default_reloc):
     s.ptr()                                    # name
     s.u32()                                    # numGlasses
     s.ptr()                                    # glasses
-    s.u32((56 - 12) // 4)                      # remainder of 56-B body (4-byte scalars)
+    if GLASSES_PTR_OVERLAY is not None:        # word @12 (genuine: 0xffffffff)
+        s.b += struct.pack('>I', GLASSES_PTR_OVERLAY['w12'])
+        s.o += 4
+    else:
+        # blind maps (no genuine overlay): the PC word @12 is a PC-heap
+        # don't-care; a swapped copy reads as a BAKED POINTER word and the
+        # console walk stops at +16 (zm_nuked rewalk drift, 2026-07-15).
+        # Genuine console ships 0xffffffff here (raid idx851) — emit that.
+        s.b += b'\xff\xff\xff\xff'
+        s.o += 4
+    s.u32((56 - 16) // 4)                      # remainder of 56-B body (4-byte scalars)
     if s.peek32(off) in PTRS:
         s.cstr()
     if s.peek32(off + 8) in PTRS:
@@ -512,7 +670,12 @@ def convert_glasses(pc, off, reloc=_default_reloc):
         for i in range(num):                   # Glass 140-B bodies
             s.u32()                            # numCellIndices
             s.u16(6)                           # cellIndices[6]
-            s.ptr()                            # glassDef @16
+            if (GLASSES_PTR_OVERLAY is not None
+                    and s.peek32(gbase + i * 140 + 16) not in PTRS):
+                s.b += struct.pack('>I', GLASSES_PTR_OVERLAY['glassdef'])
+                s.o += 4                       # glassDef alias @16 (genuine transplant)
+            else:
+                s.ptr()                        # glassDef @16
             s.u32(2)                           # index/brushModel
             s.u32(12)                          # origin/angles/absmin/absmax
             s.raw(4)                           # isPlanar/numOutlineVerts/binormalSign/pad
@@ -595,6 +758,9 @@ def _gwmp_tree_dyn(s, info):
                 _gwmp_tree_dyn(s, _gwmp_tree_node(s))
 
 
+LAST_GWMP_TREE = None   # (offset-within-body, count) of the last emitted nodeTree
+
+
 def convert_gameworldmp(pc, off, reloc=_default_reloc):
     """GameWorldMp: PC/console serialization IDENTICAL (chase findings §2).
     44-B body + (nodeCount+128) x pathnode_t(144) + per-node pathlink_s(16)
@@ -632,6 +798,11 @@ def convert_gameworldmp(pc, off, reloc=_default_reloc):
     if smooth_p in PTRS:
         s.raw(smoothBytes)
     if tree_p in PTRS:
+        # FIX 4: record where the nodeTree lands inside this body so author_zone can
+        # run gwmp_tree_fix on it (child targets emit one node low -> self-loops ->
+        # Path_NodesInCylinder_r infinite recursion -> server never finishes G_InitGame).
+        global LAST_GWMP_TREE
+        LAST_GWMP_TREE = (len(s.b), treeCount)
         infos = [_gwmp_tree_node(s) for _ in range(treeCount)]
         for inf in infos:
             _gwmp_tree_dyn(s, inf)
@@ -642,23 +813,108 @@ def convert_gameworldmp(pc, off, reloc=_default_reloc):
 def convert_scriptparsetree(pc, off, reloc=_default_reloc):
     """ScriptParseTree via the validated GSC transcoder (gsc_swap: 13/13 raid +
     17/17 dockside byte-exact). Body pointers are always FOLLOW (gsc_swap
-    asserts), so no reloc is needed. Span: 12-B struct + name + buffer + NUL."""
-    import gsc_swap
+    asserts), so no reloc is needed. Span: 12-B struct + name + buffer + NUL.
+
+    REFERENCED variant (first seen zm_nuked ×2, no oracle instance): comma-
+    prefixed name with {name FOLLOW, len 0, buffer NULL} and NO inline buffer
+    or trailing NUL — every word is endian-neutral, so the console body is the
+    PC body verbatim (span = 12 + name string)."""
     ln = struct.unpack_from('<I', pc, off + 4)[0]
+    bufptr = struct.unpack_from('<I', pc, off + 8)[0]
+    if bufptr == 0 and ln == 0:
+        end = pc.index(b'\x00', off + 12) + 1
+        return bytes(pc[off:end]), end
+    import gsc_swap
     end = pc.index(b'\x00', off + 12) + 1 + ln + 1
     return gsc_swap.convert_spt_body(pc[off:end]), end
 
 
+# ---------------------------------------------------------------- MenuList
+def convert_menulist(pc, off, pc_end, reloc=_default_reloc):
+    """MenuList {const char* name; int menuCount; menuDef_t** menus} (12 B).
+
+    zm_nuked ×2 (first map zone with MenuLists): ui_mp/hud_zstandard.txt (3
+    inline PC menuDef_t) + hud_zclassic.txt (3 alias ptrs into the first).
+    These are PLUTONIUM-era ZM HUD lists — the WiiU engine's ZM HUD is
+    patch_zm's ui_mp/hud_zombies.txt and NO genuine console map zone carries a
+    MenuList, so the engine never requests these names. The console menuDef_t
+    layout (424 B vs PC 400, FINDINGS_menu_console_layout.md) is not
+    blind-derivable, so rather than convert menus the engine won't use, emit a
+    loadable EMPTY list: {name FOLLOW, count 0, menus NULL} + name string.
+    Structurally valid for Load_MenuList, engine-inert. The full PC span
+    (incl. inline menuDefs / alias arrays) is consumed via pc_end."""
+    name_ptr = struct.unpack_from('<I', pc, off)[0]
+    assert name_ptr == FOLLOW, 'MenuList name not inline @0x%x' % off
+    nul = pc.index(b'\x00', off + 12)
+    body = b'\xff\xff\xff\xff' + b'\x00' * 8 + bytes(pc[off + 12:nul + 1])
+    return body, pc_end
+
+
 # ---------------------------------------------------------------- SkinnedVertsDef
+# The WiiU runtime skinned-vertex pool is smaller than PC's. maxSkinnedVerts
+# above the console budget makes Load_SkinnedVertsDefAsset's runtime buffer
+# allocation fail -> the def pointer is left NULL -> DB_LinkXAssetEntry ->
+# DB_SkinnedVertsDefGetName dereferences NULL and the load thread faults
+# (zm_nuked boots 2+3, PC value 163840). Genuine console maps stay within
+# budget: transit(ZM)=131072, raid(MP)=147456. DEFAULT clamp = the MP/raid
+# budget so NO genuine map's value is changed (raid stays byte-exact); the ZM
+# container path lowers this to the ZM budget (produce_container sets it).
+SKINNEDVERTS_MAX = 0x24000                  # 147456 = genuine raid (MP) budget (default)
+
+
 def convert_skinnedverts(pc, off, reloc=_default_reloc):
     """SkinnedVertsDef: console body is 24 B — {name*, maxSkinnedVerts} plus 4
     extra FOLLOW pointer words PC lacks (runtime vert buffers) — then the name
-    string and a trailing u32=0 (verified against genuine raid: 41 B total)."""
+    string and a trailing u32=0 (verified against genuine raid: 41 B total).
+    maxSkinnedVerts is CLAMPED to the console pool budget (see SKINNEDVERTS_MAX)."""
     s = Sw(pc, off, reloc)
-    s.ptr()
-    s.u32()
+    s.ptr()                                     # name
+    mx = struct.unpack_from('<I', pc, s.o)[0]   # maxSkinnedVerts (clamp, don't just swap)
+    s.b += struct.pack('>I', min(mx, SKINNEDVERTS_MAX))
+    s.o += 4
     s.b += b'\xff' * 16
     if s.peek32(off) in PTRS:
         s.cstr()
     s.b += b'\x00\x00\x00\x00'
     return bytes(s.b), s.o
+
+
+def fix_rawfile_atr_prefix(body):
+    """RawFile {const char* name; int len; const char* buffer}.
+
+    pc_to_console copies the RawFile PAYLOAD verbatim (PCConverter.emit_array,
+    the sz == 1 / char branch). That is right for every TEXT rawfile in a T6
+    zone (.rmb / .vision / .asd are plain ASCII, read by Com_LoadRawTextFile
+    which hands the buffer back as-is) and WRONG for the one COMPRESSED class,
+    '.atr': an animtree payload is [u32 uncompressedSize][raw deflate].
+
+    `Scr_ReadFile_FastFile` (guest 0x025E4878) reads that prefix with
+    `lwz r29,0(r31)` -- a BIG-ENDIAN load by definition -- and passes size + 1
+    straight to Hunk_AllocateTempMemoryHigh. Shipping PC's LITTLE-endian word
+    therefore asks for gigabytes: zm_nuked's 9959-byte animtree read back as
+    0xE7260000 = 3.88 GB. Worse, the hunk's out-of-memory guard at 0x0250AA70
+    is a SIGNED `cmpw`, so the huge value goes negative, skips Com_Error
+    entirely, and the allocator memsets an unmapped address (boot 38).
+
+    Byte-reversing the prefix is SIZE-PRESERVING, so the loader walk is
+    untouched (Load_RawFile consumes len + 1 bytes from the struct's own `len`,
+    which pc_to_console already swaps correctly). The deflate body itself is
+    byte-order neutral (Com_UncompressData = inflateInit2 with windowBits -13).
+
+    Verified: 7/7 resident RETAIL .atr RawFiles store the prefix big-endian;
+    raw-inflating our payloads yields exactly the LITTLE-endian reading.
+    """
+    if len(body) < 13 or body[8:12] not in (b'\xff\xff\xff\xff', b'\xff\xff\xff\xfe'):
+        return body                       # NULL buffer / dedup-alias record
+    try:
+        nul = body.index(b'\x00', 12)
+    except ValueError:
+        return body
+    if not body[12:nul].lower().endswith(b'.atr'):
+        return body
+    p = nul + 1
+    if p + 4 > len(body):
+        return body
+    b = bytearray(body)
+    b[p:p + 4] = bytes(reversed(b[p:p + 4]))
+    return bytes(b)

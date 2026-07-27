@@ -210,6 +210,23 @@ def simulate_stream(CO, assets, start_off, base_rt, verbose=False, policy=None):
             spans.append((i, nm, root, cur, cur)); continue
         if root is None or root not in Lc.structs:
             spans.append((i, nm, None, cur, cur)); continue
+        if root in ('WeaponVariantDef', 'VehicleDef'):
+            # feed the weapon/vehicle delimiter the upcoming body-bearing
+            # asset roots up to and INCLUDING the next weapon (ZM weapons and
+            # vehicles resync on the follower chain landing exactly on the
+            # next strong-start signature, not on an MP RAWFILE cluster)
+            nxt = [W.ASSET_ROOT.get(a[0]) for a in assets[i + 1:i + 40] if a[1]]
+            if 'WeaponVariantDef' in nxt:
+                nxt = nxt[:nxt.index('WeaponVariantDef') + 1]
+            hint = {'roots': nxt[:16]}
+            psz = em.policy.get('weapon_pc_size', {}).get(i)
+            if psz and root == 'WeaponVariantDef':
+                # PC-pair size priors: console full weapon = PC + 388,
+                # variant-only (no inline WeaponDef) = PC size (measured)
+                hint['ends'] = [cur + psz + 388, cur + psz]
+            BR.WEAPON_NEXT_HINT = hint
+        else:
+            BR.WEAPON_NEXT_HINT = None
         pre = em.policy.get('pre_skip')
         if pre and root in pre:
             # piecewise runtime correction BEFORE this asset (measured constants)
@@ -232,6 +249,10 @@ def simulate_stream(CO, assets, start_off, base_rt, verbose=False, policy=None):
             'SndBank':    (lambda z, o: AE.sndbank_events(z, o, '>'), SP.BODY),
             'GameWorldMp': (lambda z, o: AE.gwmp_events(z, o, '>'), 44),
         }
+        # exact-rt seam (2026-07-26 pipeline hardening): policy-provided event
+        # generators override/extend the built-ins (and win over CONSOLE_DELIM
+        # because CONSOLE_EVENTS dispatches first). Entries: root -> (fn, root_size).
+        CONSOLE_EVENTS.update(em.policy.get('extra_events') or {})
         import gfxworld_console_span as GCS
         if em.policy.get('co_structural_gfx'):
             # console-side gfx interior model (part B session 2, item 5):
@@ -272,7 +293,26 @@ def simulate_stream(CO, assets, start_off, base_rt, verbose=False, policy=None):
                 if verbose:
                     print('sim BREAK @%d %s: %s' % (i, nm, str(ex)[:70]))
                 spans.append((i, nm, root, start, len(CO))); break
-            replay_events(em, w, CO, start, espec[1], evts)
+            # ANCHOR RE-PHASE (2026-07-26, policy['anchor_rt'] = {asset_idx:
+            # measured runtime offset}). Interior alignment pads depend on the
+            # ABSOLUTE cursor, so an asset walked at a drifted address computes
+            # a different pad than the console does at its real one (measured:
+            # a single align-8 site inside a weapon paid 5 bytes instead of 1
+            # because the cursor sat at 4 mod 8 instead of 0 mod 8 — the whole
+            # residual at the weapon golden points). When a MEASURED anchor
+            # exists, walk the asset AT that address so every interior resolves
+            # in the console's own phase, then hand the outer walk back the
+            # bytes consumed so downstream assets are unaffected.
+            # Absent the policy key this is a no-op (raid/skate unchanged).
+            anch = (em.policy.get('anchor_rt') or {}).get(i)
+            if anch is None:
+                replay_events(em, w, CO, start, espec[1], evts)
+            else:
+                blk = w.cur_block
+                v0 = w.block_size[blk]
+                w.block_size[blk] = anch
+                replay_events(em, w, CO, start, espec[1], evts)
+                w.block_size[blk] = v0 + (w.block_size[blk] - anch)
             spans.append((i, nm, root, start, end))
             em.src = cur = end
             continue
@@ -441,6 +481,19 @@ def simulate_pc(pc_path_or_bytes, verbose=False, policy=None):
         'XAnimParts':           lambda z, o: _XA.parse_xanim(z, o, '<')[0],
         'GfxImage':             lambda z, o: MC.pc_image_span(z, o),
     }
+    # ZM zones: WeaponVariantDef is not generically walkable (inline weapDef /
+    # attachment / anim content — the Lane D class). Without a consumer the PC
+    # sim BREAKS at the first weapon (zm_nuked @1158) and every post-weapon
+    # anchor (SndBank @3132) is unreachable -> derive_pc_policy pass 2 dies.
+    # weapon_convert.convert_weapon's pc_end is the proven span (107/107
+    # transit). Same delimiter treatment as XModel/FxEffectDef.
+    import weapon_convert as _WVC
+    PC_DELIM['WeaponVariantDef'] = lambda z, o: _WVC.convert_weapon(z, o)[1]
+    # same class: 3 TracerDefs / 8 WeaponCamos carry inline sub-assets the
+    # generic walk can't span (zm_nuked sim drifted -94B at TRACER @1151)
+    import zmconv_b as _ZCB
+    PC_DELIM['TracerDef'] = lambda z, o: _ZCB.convert_tracerdef(z, o)[1]
+    PC_DELIM['WeaponCamo'] = lambda z, o: _ZCB.convert_weaponcamo(z, o)[1]
     import alloc_events as AE
     import clipmap_pc
     PC_EVENTS = {
