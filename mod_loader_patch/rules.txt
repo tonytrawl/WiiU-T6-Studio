@@ -1,6 +1,0 @@
-[Definition]
-titleIds = 000500001010CD00,000500001010CE00,000500001010CC00
-name = "BO2 Raw Lua Loader"
-version = 7
-# titleIds above are the common US/EU/JP Black Ops II Wii U IDs — keep the one(s)
-# that match your dump (check Cemu's title list). Extra IDs are harmless.
