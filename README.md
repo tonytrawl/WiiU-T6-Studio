@@ -4,7 +4,7 @@
 
 # WII U T6 Studio
 
-**Fastfiles, texture paks, sound banks and the engine itself — in one window.**
+**Fastfiles, texture paks, sound banks and the engine itself, in one window.**
 
 Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
 
