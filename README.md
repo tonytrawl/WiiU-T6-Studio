@@ -181,7 +181,7 @@ Every copy can test itself:
 WiiU_T6_Studio.exe --selftest
 ```
 
-Read the counts rather than the colour. A gate reported `SKIP` is **not** a pass. It means the data
+Read the counts rather than the color. A gate reported `SKIP` is **not** a pass. It means the data
 it needed was not on that machine, so the check never ran.
 
 * * *
@@ -211,7 +211,7 @@ actually a count, so resizing them desynchronises the zone.
 **Added assets and textures are inert.** Nothing references them until you wire them up zone-side,
 which this does not do for you.
 
-**PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
+**PC T6 files are not supported yet.** The pak reader recognizes little-endian paks, but the image decoder
 is console-specific and the fastfile side is Wii U only.
 
 * * *
