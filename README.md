@@ -32,7 +32,7 @@ ability to edit, author, and grow all those files.
 * Patch the engine so edited files will actually load
 * Change the game's internal render resolution
 * Search every pak and zone by texture name to find where something lives
-* Replace hundreds of textures in one pass from a folder
+* Bulk replace hundreds of textures in one pass from a folder (ideal for bringing plutonium texture mods to wii u)
 
 It opens `.ff` fastfiles, `.ipak` texture paks, `.sabs` / `.sabl` sound banks and the engine's own
 `.rpl` / `.rpx` modules. The window changes to suit whatever you opened. You can have several open
