@@ -46,11 +46,6 @@ A fastfile written by this tool, or by any tool, has **no valid RSA signature**.
 Treyarch has the key. An unpatched console checks that signature and refuses the file, which shows
 up as a crash or a hang the moment the zone is requested.
 
-This is not theoretical. A user with a EU copy had every edit fail, including saving a zone with no
-changes made at all, while the same build worked fine elsewhere. The zones were compared byte for
-byte. Decompressed payloads identical, container framing identical, and the only difference was
-that 256 byte signature block.
-
 Open your engine RPL in the **RPL** tab and apply the signature patch before you edit anything. The
 tool checks on startup and tells you if it looks unpatched.
 
