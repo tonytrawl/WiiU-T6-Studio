@@ -81,8 +81,7 @@ showing the original.
 The list has a gallery view if you would rather browse visually than read names.
 
 The console binds each part from the *first* pak it finds it in and never looks again. If a
-base-game pak holds the same texture and loads earlier, your edit is never read. The save succeeds,
-the game shows the old image, and nothing reports a problem. The tool warns you before you spend
+base-game pak holds the same texture and loads earlier, your edit is never read.The tool warns you before you spend
 the edit, and **Find asset** shows you every pak holding each part.
 
 ## 🔊 Sound banks (`.sabs` / `.sabl`)
@@ -126,11 +125,10 @@ after, including textures that live inline in a zone rather than in any pak. Typ
 paste a raw hash. It reads an index rather than decoding anything, so a search across tens of
 thousands of keys comes back instantly.
 
-**Bulk replace** is the same machinery pointed at a folder. Drop in a pile of images named the way
+**Bulk replace** is the same tool but pointed at a folder. Drop in a pile of images named the way
 the game names them. It finds every pak and zone carrying each one and rewrites them all. Work is
 grouped by destination file, so twenty textures living in one pak open and save that pak once
-rather than twenty times. Anything it cannot match is reported and the rest carries on, because a
-batch that dies halfway leaves you unable to tell what landed.
+rather than twenty times. 
 
 DDS is fully supported, which matters because it is what PC texture mods ship. PNG, TGA, BMP, JPG,
 GIF, TIFF and WebP work too.
