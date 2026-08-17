@@ -190,7 +190,7 @@ it needed was not on that machine, so the check never ran.
 
 Worth knowing before you hit them.
 
-**Nothing here is proven on console.** Every check the program runs proves files are well-formed
+Every check the program runs proves files are well-formed
 and round-trip correctly. None of it proves the console accepts the result. Treat a successful save
 as structurally sound rather than known working.
 
@@ -212,7 +212,7 @@ actually a count, so resizing them desynchronises the zone.
 which this does not do for you.
 
 **PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
-is console-specific and the fastfile side is Wii U only.
+is console-specific and the fastfile side is Wii U only (OAT hook to support PC coming soon).
 
 * * *
 
