@@ -1,8 +1,12 @@
 <div align="center">
 
+[![WII U T6 Studio](icon.png)](https://github.com/tonytrawl/WiiU-T6-Studio)
+
 # WII U T6 Studio
 
 **Fastfiles, texture paks, sound banks and the engine itself, in one window.**
+
+Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
 
 [![Latest release](https://img.shields.io/github/v/release/tonytrawl/WiiU-T6-Studio?style=for-the-badge&logo=github&logoColor=17130a&label=RELEASE&labelColor=17130a&color=e8a33d)](https://github.com/tonytrawl/WiiU-T6-Studio/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/tonytrawl/WiiU-T6-Studio/total?style=for-the-badge&label=DOWNLOADS&labelColor=17130a&color=4d8fd6)](https://github.com/tonytrawl/WiiU-T6-Studio/releases)
@@ -30,7 +34,7 @@ ability to edit, author, and grow all those files.
 * Patch the engine so edited files will actually load
 * Change the game's internal render resolution
 * Search every pak and zone by texture name to find where something lives
-* Bulk replace hundreds of textures in one pass from a folder (ideal for bringing plutonium texture mods to wii u)
+* Replace hundreds of textures in one pass from a folder
 
 It opens `.ff` fastfiles, `.ipak` texture paks, `.sabs` / `.sabl` sound banks and the engine's own
 `.rpl` / `.rpx` modules. The window changes to suit whatever you opened. You can have several open
@@ -43,6 +47,11 @@ at once, such as a map's zone next to the pak its textures stream from.
 A fastfile written by this tool, or by any tool, has **no valid RSA signature**. Nobody outside
 Treyarch has the key. An unpatched console checks that signature and refuses the file, which shows
 up as a crash or a hang the moment the zone is requested.
+
+This is not theoretical. A user with a EU copy had every edit fail, including saving a zone with no
+changes made at all, while the same build worked fine elsewhere. The zones were compared byte for
+byte. Decompressed payloads identical, container framing identical, and the only difference was
+that 256 byte signature block.
 
 Open your engine RPL in the **RPL** tab and apply the signature patch before you edit anything. The
 tool checks on startup and tells you if it looks unpatched.
@@ -188,7 +197,7 @@ it needed was not on that machine, so the check never ran.
 
 Worth knowing before you hit them.
 
-Every check the program runs proves files are well-formed
+**Nothing here is proven on console.** Every check the program runs proves files are well-formed
 and round-trip correctly. None of it proves the console accepts the result. Treat a successful save
 as structurally sound rather than known working.
 
@@ -210,7 +219,34 @@ actually a count, so resizing them desynchronises the zone.
 which this does not do for you.
 
 **PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
-is console-specific and the fastfile side is Wii U only (OAT hook to support PC coming soon).
+is console-specific and the fastfile side is Wii U only.
+
+* * *
+
+## 🧩 OpenAssetTools
+
+Two files ship with this program from [OpenAssetTools](https://github.com/Laupetin/OpenAssetTools)
+by Laupetin, at commit `85aa741`:
+
+- `T6_Assets.h`, the layout of every T6 asset structure
+- `ZoneCode/Game/T6/XAssets`, how those structures are written into a zone
+
+They are read as reference data and are what makes walking a fastfile possible. No OpenAssetTools
+code is compiled into this program.
+
+Everything else, including all Wii U support, is my own work.
+
+* * *
+
+## 📄 Licence
+
+GPL-3.0, full text in [`LICENSE`](LICENSE). This program includes GPL-3.0 files from
+OpenAssetTools, whose licence ships at
+[`licenses/OpenAssetTools-LICENSE.txt`](licenses/OpenAssetTools-LICENSE.txt).
+
+Source for every release is in this repository at the matching tag.
+
+Extracting the contents of game files does not grant you any rights to them.
 
 * * *
 
