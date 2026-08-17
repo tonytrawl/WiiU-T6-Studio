@@ -6,8 +6,6 @@
 
 **Fastfiles, texture paks, sound banks and the engine itself, in one window.**
 
-Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
-
 [![Latest release](https://img.shields.io/github/v/release/tonytrawl/WiiU-T6-Studio?style=for-the-badge&logo=github&logoColor=17130a&label=RELEASE&labelColor=17130a&color=e8a33d)](https://github.com/tonytrawl/WiiU-T6-Studio/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/tonytrawl/WiiU-T6-Studio/total?style=for-the-badge&label=DOWNLOADS&labelColor=17130a&color=4d8fd6)](https://github.com/tonytrawl/WiiU-T6-Studio/releases)
 [![Platform](https://img.shields.io/badge/PLATFORM-WINDOWS-7cb342?style=for-the-badge&logo=windows&logoColor=eef3f8&labelColor=17130a)](#-why-windows-only)
