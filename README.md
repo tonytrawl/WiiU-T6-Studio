@@ -1,7 +1,5 @@
 <div align="center">
 
-[![WII U T6 Studio](icon.png)](https://github.com/tonytrawl/WiiU-T6-Studio)
-
 # WII U T6 Studio
 
 **Fastfiles, texture paks, sound banks and the engine itself, in one window.**
