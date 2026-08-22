@@ -264,7 +264,7 @@ projects, implemented HD texture modifications, and led key research on future u
 conversion projects, helping analyse cross-platform texture handling to inform the Wii U shader
 pipeline.
 
-**ThePsych** Contributed early research and foundational work on ipak file conversions.
+**ThePsych** Contributed early research work on ipak file conversions.
 
 * * *
 
