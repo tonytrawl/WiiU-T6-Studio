@@ -1,149 +1,291 @@
-# Wii U T6 Toolkit — PC → Wii U (Black Ops II) map conversion
+<div align="center">
 
-A shareable snapshot of the tools for converting **PC (Plutonium/T6) Black Ops II** fastfiles into
-**Wii U (v148)** fastfiles + ipaks. Code and documentation only — **no game data is included** (see
-"What you supply" below).
+[![WII U T6 Studio](icon.png)](https://github.com/tonytrawl/WiiU-T6-Studio)
 
-> This is a code/docs snapshot for collaborators. It intentionally excludes internal working notes,
-> build artifacts, and any copyrighted game content (zones, fastfiles, ipaks, RPLs).
+# WII U T6 Studio
 
-## Layout
+**Fastfiles, texture paks, sound banks and the engine itself, in one window.**
+
+Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
+
+[![Latest release](https://img.shields.io/github/v/release/tonytrawl/WiiU-T6-Studio?style=for-the-badge&logo=github&logoColor=17130a&label=RELEASE&labelColor=17130a&color=e8a33d)](https://github.com/tonytrawl/WiiU-T6-Studio/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/tonytrawl/WiiU-T6-Studio/total?style=for-the-badge&label=DOWNLOADS&labelColor=17130a&color=4d8fd6)](https://github.com/tonytrawl/WiiU-T6-Studio/releases)
+[![Platform](https://img.shields.io/badge/PLATFORM-WINDOWS-7cb342?style=for-the-badge&logo=windows&logoColor=eef3f8&labelColor=17130a)](#-why-windows-only)
+[![License](https://img.shields.io/badge/LICENSE-GPL%20v3.0-b07cd6?style=for-the-badge&labelColor=17130a)](LICENSE)
+
+[![Buy me a coffee](https://img.shields.io/badge/SUPPORT%20MY%20WORK-BUY%20ME%20A%20COFFEE%20%E2%98%95-e8a33d?style=for-the-badge&labelColor=17130a&logo=buymeacoffee&logoColor=17130a)](https://buymeacoffee.com/tonytrawl)
+
+</div>
+
+* * *
+
+Black Ops II on Wii U keeps its content in four containers. This tool edits, authors and grows all
+of them.
+
+## What you can do with it
+
+* Swap textures in texture paks and inside fastfiles
+* Edit GSC and CSC scripts, with a decompiler and an editable assembly view
+* Compile Lua and HKS from source
+* Edit text, cfg and csv files, and make them bigger than they were
+* Add new scripts and raw files to a zone
+* Replace sounds, extract them to WAV, and add or delete entries
+* Preview models in 3D
+* Patch the engine so edited files will actually load
+* Change the game's internal render resolution
+* Search every pak and zone by texture name to find where something lives
+* Replace hundreds of textures in one pass from a folder
+
+It opens `.ff` fastfiles, `.ipak` texture paks, `.sabs` / `.sabl` sound banks and the engine's own
+`.rpl` / `.rpx` modules. The window changes to suit whatever you opened, and several can be open at
+once as tabs.
+
+* * *
+
+## ⚠️ Read this first
+
+Two things to set up before your first edit. Skip either one and your work will not load, or will
+load without names and warnings.
+
+### 1. Patch the signature check
+
+A fastfile written by this tool, or by any tool, has **no valid RSA signature**. Nobody outside
+Treyarch has the key. An unpatched console checks that signature and refuses the file, which shows
+up as a crash or a hang the moment the zone is requested. It happens even when you save a zone with
+no changes at all.
+
+1. Open the **RPL** tab.
+2. Open `t6_cafef_rpl.rpl`, apply **Fastfile signature check**.
+3. Open `t6mp_cafef_rpl.rpl`, apply the same patch.
+
+Patch **both**. `t6_cafef_rpl` loads first and carries its own copy of the same engine code. The
+tool checks on startup and tells you if it looks unpatched. Your original is copied to
+`<name>.stock` before the first edit and that backup is never overwritten.
+
+### 2. Point the tool at your game folders
+
+Texture entries store a numeric hash and no name. Readable names, formats and dimensions come from
+your own paks and zones, and so does the warning that the texture you are editing also exists in a
+pak that loads earlier. Without a game folder you get hex ids and no warnings.
+
+Click **Game folders** in the toolbar and add the `content` folder of your Wii U install, the one
+holding the `.ipak` and `.ff` files. It looks like this:
 
 ```
-native\_linker/     the from-scratch PC→console converters + zone walker + assembler (Python)
-wiiu\_ref/          Wii U format probes, GX2 texture tiling, ipak authoring, techset tools (Python)
-                   + \*\_findings.md mechanism notes (how each format works)
-tools/
-  ff\_decrypt.py    decrypt/decompress any T6 fastfile (PC v147 / WiiU v148 / X360 v146)
-  salsa20.py       stream cipher used by the fastfile format
-  ref\_oat/src/     the EXTENDED OpenAssetTools source (our Wii U console read/write additions)
-WiiU\_FF\_Studio/    the desktop GUI (tkinter) for the flat conversions + console tools
-docs/              format / reverse-engineering findings (how the conversion works)
+content/
+  base_split0.ipak … base_split8.ipak
+  mp_nuketown_2020.ipak
+  english/
+    common_patch_mp.ff
+    patch_mp.ff
 ```
 
-## Components
+**Cemu installs are found automatically.** The tool checks Cemu's own data folder for both title
+categories:
 
-### `native\_linker/` — the native conversion pipeline
+| | Path |
+|---|---|
+| Update | `<Cemu>/mlc01/usr/title/0005000e/1010cf00/content` |
+| DLC | `<Cemu>/mlc01/usr/title/0005000c/1010cf00/content` |
 
-Converts PC zone assets to Wii U console layout, byte-validated against genuine console zones as an
-oracle. Key modules:
+`<Cemu>` is `%APPDATA%\Cemu` on Windows, `~/Library/Application Support/Cemu` on macOS, and
+`$XDG_DATA_HOME/Cemu` or `~/.cemu` on Linux. A Wine or Proton prefix is checked too.
 
-* `pc\_convert\_pipeline.py` — end-to-end orchestrator (unlink → convert → repack → author ipak). Also
-what the GUI calls.
-* `pc\_zone.py` / `zone\_stream.py` — PC (LE) zone reader / console (BE) block-stream writer.
-* `pc\_walk.py` — the asset dispatcher that walks a PC map zone end-to-end (routes each asset type to
-its per-type probe/consumer).
-* Per-type converters: `material\_convert.py`, `xmodel\_convert.py`, `fx\_convert.py`,
-`techset\_translate.py` (genuine-console substitution), `pc\_to\_console.py` (simple/world types),
-and the GfxWorld set (`gfxworld\_\*.py` — body/dynamics/geometry).
-* `\*\_pc.py` — PC-side span/extent parsers used by the walker.
-* `validate\_\*.py` — matched-pair oracle harnesses (convert PC body, diff vs genuine console).
+Three other things are searched without any configuration:
 
-### `wiiu\_ref/` — Wii U format primitives
+* The folder you opened a file from, and its parent.
+* The folder the program itself sits in, or a `content` folder inside it. Drop the exe into your
+  game folder and it just works.
+* `WIIU_CONTENT_DIR`, if you set it. Separate multiple paths the way your OS separates `PATH`.
 
-* `gx2\_texture.py` — full Latte GX2 tile/detile (2D + cube faces).
-* `ipak.py` / `ipak\_stream.py` — read/author Wii U ipaks; pull PC image sources by name-hash.
-* `pc\_image\_enum.py` — enumerate a PC zone's GfxImages.
-* `gfxworld\_probe2.py`, `xmodel\_probe.py`, `shader\_probe.py`, etc. — both-platform structure probes.
-* `rpl\_sigpatch.py` — patch a T6 engine RPL to load custom (zeroed-signature) fastfiles.
-* `\*\_findings.md` — the mechanism notes for each area (read these to understand the formats).
+The **Game folders** window lists everything currently being searched, marked `[configured]` or
+`[auto]`. Settings are stored in `wiiu_ff_studio.json` next to the program.
 
-### `WiiU\_FF\_Studio/` — desktop GUI
+> The disc image is not searched and should not be edited. Maps belong in the DLC folder, patched
+> zones in the update folder.
 
-tkinter front-end (pure stdlib, freezes to a single EXE). Pages: fastfile↔zone, batch convert,
-PC-fastfile → Wii U + ipak pipeline, zone inspect/validate/edit, RPL signature patch. See its
-`README.md` / `USAGE.md`. All the tools are not baked in yet as they are still being worked on.
+* * *
 
-## Requirements
+## 🗂️ Fastfiles (`.ff`)
 
-* **Python 3.10+** for the tools (`native\_linker`, `wiiu\_ref`, `tools`, the GUI). The GUI is
-stdlib-only; some `wiiu\_ref` RE helpers use `capstone` (only where noted).
-* **A C++ toolchain** (the OAT upstream build setup) if you want to build `ref\_oat`.
+Browse every asset in a zone.
 
-## Quick start
+**Scripts.** GSC and CSC get a disassembly listing plus an editable assembly view, with or without
+the source. The decompiler lands around 98% on retail bytecode. Lua and HKS get the same treatment
+and compile from source. Text, cfg and csv files are edited directly.
 
-```bash
-# decrypt a PC fastfile to its raw zone
-python tools/ff\_decrypt.py <map.ff> <out.zone>
+**Growing a zone.** Scripts and raw files can get bigger. The zone is rebuilt and every pointer
+re-pointed, then re-walked. **A file whose walk broke is refused rather than written.**
 
-# end-to-end: PC fastfile -> Wii U fastfile + ipak  (see the module header for options)
-python native\_linker/pc\_convert\_pipeline.py <pc\_map.ff> <out\_dir> \[--console-ref <wiiu .ff/.zone>]
+**Models.** A software preview with geometry and shading, enough to identify something but not to
+judge how it looks in game.
 
-# author a Wii U ipak from a PC map's images
-python wiiu\_ref/pc\_image\_enum.py <pc\_map.zone> <meta\_dir>
-python wiiu\_ref/ipak\_stream.py prepare <meta\_dir> <out\_dir> --ipak <map>.ipak --pc-ipaks <base.ipak> <mp.ipak> <dlcN.ipak>
+**Inline textures.** Zones carry their own textures, often hundreds, embedded in materials and FX
+rather than in the asset list. Open them with the **Textures** button to browse, export and
+replace. Unlike pak textures these can change resolution, because the record is rewritten with the
+pixels.
 
-# or launch the GUI
-python WiiU\_FF\_Studio/wiiu\_ff\_studio.py
+Feed one a larger image and you are offered the original size or the largest that still fits. That
+ceiling is measured per texture against the padding after it, so it is whatever the space allows
+rather than a fixed multiple. Sometimes that is double, sometimes 1.6x. Where nothing bigger fits
+you get the original size only, and an image too large for the space is refused.
+
+## 🖼️ Texture paks (`.ipak`)
+
+Preview, extract and replace streamed textures. Use the gallery view to browse visually instead of
+by name.
+
+Replacement re-encodes into the entry's existing format, because the zone tells the GPU how to read
+those bytes. It covers **every part** of an image, not just the one you clicked. A streamed texture
+is split across up to three parts holding different mip tiers, and doing one leaves the rest
+showing the original.
+
+> The console binds each part from the **first** pak it finds it in and never looks again. If a
+> base-game pak holds the same texture and loads earlier, your edit is never read: the save
+> succeeds, the game shows the old image, and nothing reports a problem. The tool warns you before
+> you spend the edit, and **Find asset** shows every pak holding each part.
+
+## 🔊 Sound banks (`.sabs` / `.sabl`)
+
+Browse entries, see the waveform, play them back, extract to WAV, replace, add and delete.
+
+Untouched entries are written back byte for byte including their original checksums. Retail ships
+entries whose stored checksum does not recompute, and "correcting" them is what broke banks in
+earlier attempts.
+
+Audio is DSP-ADPCM stored at 2/3 of the nominal rate, 48000 down to 32000, while the frame count
+keeps the original figure. Multi-channel payloads are block-interleaved at 64 KB in streamed banks
+and flat in loaded ones, with nothing in the file to tell you which. Only the extension.
+
+## ⚙️ Engine RPLs (`.rpl` / `.rpx`)
+
+Three patches: the fastfile signature check, the DLC load gate, and the internal render resolution
+with eleven presets from 640x480 up, or type your own.
+
+Everything is located by symbol name and instruction pattern rather than by address. The base, MP
+and update builds put the same code in different places. The resolution site sits at `0x0297B418`
+in one and `0x027FA17C` in another, so a patcher pinned to an address quietly does nothing on the
+wrong file.
+
+* * *
+
+## 🔍 Finding things
+
+**Find asset** (`Ctrl+F`) tells you which pak *or fastfile* holds what you are after, including
+textures that live inline in a zone rather than in any pak. Type part of a name or paste a raw
+hash. It reads an index rather than decoding anything, so a search across tens of thousands of keys
+returns instantly.
+
+**Bulk replace** points the same machinery at a folder:
+
+1. Name your images the way the game names them, which is what a PC texture mod already does.
+2. Drag the folder onto the window, or use **Bulk replace**.
+3. Review the list. Nothing is written until you confirm.
+
+It finds every pak and zone carrying each image and rewrites them all, grouped by destination file,
+so twenty textures living in one pak open and save that pak once. Everything touched is backed up
+first, and anything it cannot match is reported while the rest carries on.
+
+Accepts `.png` `.dds` `.tga` `.bmp` `.jpg` `.gif` `.tif` `.webp`. DDS is covered in full (DXT1-5,
+BC4/5/6H/7, DX10), because that is what PC mods ship.
+
+* * *
+
+## 📋 Before you edit
+
+1. **Patch the signature check.** Nothing you save will load otherwise.
+2. **Back up whatever you touch.** RPL patches back themselves up. Nothing else does.
+3. **Cold start the game afterwards.** Texture parts and loaded banks stay cached, so a hot reload
+   can serve the old bytes and make a good edit look broken.
+4. **Watch for duplicate copies.** If the same file exists somewhere else the game loads from, an
+   update folder or a DLC folder, editing one is a coin flip on which gets read.
+
+* * *
+
+## 🧪 Checking a build
+
+Every copy can test itself:
+
+```
+WiiU_T6_Studio.exe --selftest
 ```
 
-## How it works (docs)
+Read the counts rather than the colour. A gate reported `SKIP` is **not** a pass. It means the data
+it needed was not on that machine, so the check never ran.
 
-Start with `docs/WIIU\_MAP\_CONVERSION.md`, then the format findings in `docs/` and the `\*\_findings.md`
-notes under `wiiu\_ref/`. Each converter's module header documents its layout map and validation.
+* * *
 
-## Current state — honest, per component
+## 🧱 Known limits
 
-Status legend: ✅ built \& validated · 🟡 partial / WIP · ⬜ not built. "Byte-exact" = output matches a
-genuine console asset byte-for-byte (matched-pair oracle). "HW-confirmed" = loaded/rendered correctly
-on Cemu.
+**Nothing here is proven on console.** The checks prove files are well-formed and round-trip
+correctly, not that the console accepts them. Treat a successful save as structurally sound rather
+than known working.
 
-### Fastfile I/O \& console tooling
+**`common.ff` cannot be saved.** The structural walk stops at a VehicleDef record it cannot resume
+past, affecting roughly 17 of the 155 stock zones. Your file is not damaged and same-size image
+replacement still works. Only growing the zone is refused.
 
-|Tool|State|Truth|
-|-|-|-|
-|`tools/ff\_decrypt.py`|✅|Decrypts PC v147 / WiiU v148 / X360 v146. Solid.|
-|`WiiU\_FF\_Studio` pack/decrypt|✅|WiiU v148 pack is **boot-confirmed**; flat conversions (ff↔zone, batch) work.|
-|`wiiu\_ref/rpl\_sigpatch.py`|✅|Reproduces the installed working RPLs byte-exact; custom (zeroed-sig) ffs load.|
-|`WiiU\_FF\_Studio` pipeline page|🟡|Wraps `native\_linker` pipeline — inherits its state below (bootable only with a console backbone).|
+**Some pak entries carry no format or dimensions** anywhere findable. Those extract raw but cannot
+be previewed or replaced. They are shown rather than hidden.
 
-### Geometry \& GfxWorld
+**The GSC compiler does not cover the whole language.** No `%anim` or `#animtree`, no
+`waittillmatch`, and vector constants compile to a longer but valid form. Scripts using those are
+refused rather than silently mis-compiled. A single compiled script caps at 65,535 bytes.
 
-|Tool|State|Truth|
-|-|-|-|
-|GfxWorld geometry (`gfxworld\_dynamics/assemble`)|✅ HW-confirmed|vd0 (group-aware 36B), vd1 (swap2), indices, surfaces + material-ptr relocation render correct on Cemu. Offset = stored `vertexDataOffset0` (no console reorder).|
-|GfxWorld body/dynamics|✅ HW-confirmed|Body + all dynamic regions convert; validated vs oracle.|
-|Lighting exactness|🟡|Tangent + vd1 second-UV are console-repacked → map renders slightly darker (cosmetic; geometry unaffected).|
-|No-backbone region generators (`gfxworld` novel synthesis)|🟡 WIP|The console-only regions for a map with no console counterpart. Breakdown: \~7.2 MB GX2 textures (existing image pipeline, cubemaps verified 6/6), \~4.2 MB PC-sourced bounded conversions, **\~90 KB genuinely-new synthesis** (streamInfo / sortedSurfIndex / smodelCastsShadow). In progress.|
+**`KeyValuePairs` and `SoundPatch` assets are read-only.** The field that looks like a length is
+actually a count, so resizing them desynchronises the zone.
 
-### Per-asset converters (`native\_linker`)
+**Added assets and textures are inert.** Nothing references them until you wire them up zone-side,
+which this does not do for you.
 
-|Tool|State|Truth|
-|-|-|-|
-|`material\_convert.py`|✅|437/446 byte-exact (the 9 differ by 2 bytes in a sort hash — low-impact, loadable). Console Material = 104 B.|
-|`xmodel\_convert.py` (rigid)|✅|body+bones+surfaces(128B)+materialHandles+collSurfs+boneInfo+physPreset; full driver 186/0 clean resync.|
-|`xmodel\_convert.py` inline-material **image** emission|🟡 REQUIRED, WIP|Emits material handles but **not the inline GfxImage pixels** → bodies are truncated → **not yet loadable** for maps with inline models (mp\_skate has 466 inline XModels). Wiring the existing GX2 image path into the inline-material branch; not new RE.|
-|`xmodel\_convert.py` skinned surfaces|⬜|`vertsBlend` swaps cleanly, but the 3 Latte skin-streams are **not derivable from PC data** (confirmed independently by OAT). Plan: emit rigid (stream-valid, bind-pose) + loader-tolerance test; real synthesis is a later item. Blocks zombies characters/weapons.|
-|`xmodel\_convert.py` collmaps chain|⬜|109/465 models; collision, deferrable past a first render.|
-|`fx\_convert.py`|🟡|FxEffectDef header 388/388 byte-exact; the FxElemDef body/curve tail is not yet wired.|
-|`techset\_translate.py`|✅ (substitution)|Substitutes a genuine console techset per PC techset via **name grammar**; mp\_skate = 0 unresolved (202 exact + 34 struct + 5 prefix). Not byte-identical (it's a valid *substitute* console shader, not a transcode). D3D→GX2 shader recompilation is intentionally NOT done.|
-|`pc\_to\_console.py` (simple/world)|✅|StringTable/KVP/RawFile/… + ComWorld/MapEnts/GameWorldMp/clipMap byte-exact.|
-|`sndbank\_pc.py`|✅ (span)|PC SndBank is byte-identical to WiiU → byte-copy; walker sizes it correctly.|
-|`validate\_\*.py`|✅|Matched-pair oracle harnesses; the discipline behind every "byte-exact" claim above.|
+**PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
+is console-specific and the fastfile side is Wii U only.
 
-### Walk / images / assemble
+* * *
 
-|Tool|State|Truth|
-|-|-|-|
-|`pc\_walk.py` (zone traversal)|✅ / ⬜|Reaches **end-of-zone on mp\_skate (840) + raid**. **WEAPON consumer not built** → blocks any map with inline weapons (nuketown MP + all ZM maps, \~100/zm map).|
-|`pc\_image\_enum.py` + `ipak\_stream.py` + `gx2\_texture.py`|✅|Author a WiiU ipak from PC images; **byte-exact vs retail** (mp\_la 287/287). GX2 tiling covers 2D + cube faces.|
-|`dlc\_packs.py` (DLC source auto-select)|✅|DLC maps stream from `dlcN`/`dlczmN.ipak`; auto-selects the right pack (mp\_skate skips 397→7).|
-|Asset-list authoring (`\_assetlist\_author.py`)|✅ (foundation)|Console order + type remap byte-exact on 2 MP maps; string table reused verbatim; MP console-only inserts characterized.|
-|`pc\_convert\_pipeline.py` (with console backbone)|✅|For a map that **exists on Wii U**, produces a bootable ff (backbone splice) + ipak.|
-|No-backbone whole-zone assembler (`produce\_nobackbone.py`)|🟡 WIP|The path that authors a complete console zone from PC alone (the goal). Raid-oracle control runs; **not yet producing a bootable no-backbone ff** — gated on the XModel inline-image emission + region generators + assemble wiring above.|
+## 🪟 Why Windows only
 
-### `tools/ref\_oat/src` — extended OpenAssetTools
+The release is a single Windows executable. Three things tie to it: audio playback, drag and drop,
+and shell integration. Everything else, including fastfile parsing, GX2 detiling, the BCn and
+DSP-ADPCM codecs and the relinker, is plain Python.
 
-||State|Truth|
-|-|-|-|
-|Console read/write (per-struct)|✅ (byte oracle)|Emits/reads individual console asset structs — useful as a **byte reference** for validating the native converters.|
-|Bootable output|⚠️ **never**|OAT has **never produced a bootable Wii U ff** — it leaves dangling cross-asset world pointers on load (this is *why* the native `native\_linker` pipeline exists). Do not treat OAT output as a working target; use it as a per-struct oracle only.|
-|Techset write|⬜|Emits **null shader subtrees** (no D3D→GX2 transcode) — real shaders come from genuine-blob substitution.|
-|"Siege-skin" work|✅ (transplant)|`ConsoleSiegeSkinTail.h` is the GfxWorld GPU-skinning *shaders* transplanted verbatim — NOT the XModel skinned skin-streams (those remain unsolved, see above).|
+Run it from source on Linux or macOS and it works minus playback and drag and drop. There is no
+build for either, because Windows is the only platform I test on.
 
-## License / attribution
+* * *
 
-`tools/ref\_oat` derives from OpenAssetTools (see its upstream license). The Wii U additions and the
-`native\_linker`/`wiiu\_ref` tooling are this project's work. Game assets are the property of their
-respective owners and are not included or redistributed here.
+## 🧩 OpenAssetTools
 
+Two files ship with this program from [OpenAssetTools](https://github.com/Laupetin/OpenAssetTools)
+by Laupetin, at commit `85aa741`:
+
+- `T6_Assets.h`, the layout of every T6 asset structure
+- `ZoneCode/Game/T6/XAssets`, how those structures are written into a zone
+
+They are read as reference data and are what makes walking a fastfile possible. No OpenAssetTools
+code is compiled into this program.
+
+Everything else, including all Wii U support, is my own work.
+
+* * *
+
+## 📄 Licence
+
+GPL-3.0, full text in [`LICENSE`](LICENSE). This program includes GPL-3.0 files from
+OpenAssetTools, whose licence ships at
+[`licenses/OpenAssetTools-LICENSE.txt`](licenses/OpenAssetTools-LICENSE.txt).
+
+Source for every release is in this repository at the matching tag.
+
+Extracting the contents of game files does not grant you any rights to them.
+
+* * *
+
+<div align="center">
+
+Built by **[tonytrawl](https://github.com/tonytrawl)**
+
+Not affiliated with, endorsed by, or supported by Activision or Treyarch.<br>
+For use with content you already own.
+
+</div>
