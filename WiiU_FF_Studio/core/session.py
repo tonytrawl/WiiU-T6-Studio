@@ -128,7 +128,7 @@ class SavePlan(object):
 
 
 class ZoneSession(object):
-    def __init__(self, zone, name, ff_path=None, header=None, chunks=None):
+    def __init__(self, zone, name, ff_path=None, header=None, chunks=None, progress=None):
         self.zone = zone
         self.name = name
         self.ff_path = ff_path
@@ -143,21 +143,73 @@ class ZoneSession(object):
         self._raw = {}
         self.last_relink_report = None    # authoritative gates from the last build_zone()
         self.last_add_stats = None
+
+        # These two are the slow half of an open and neither can report from inside, so the
+        # phase BOUNDARY is announced instead. A caller that only hears "decompressing" thinks
+        # the work is over when it is not.
+        def say(frac, label):
+            if progress:
+                try:
+                    progress(frac, label)
+                except Exception:
+                    pass
+
+        say(0.0, 'enumerating assets')
         self.enumeration = _assets.enumerate_zone(zone)
+        say(0.78, 'reading zone facts')
         self.facts = ZF.Facts(zone, name=name)
+        say(1.0, 'ready')
 
     # ---------------------------------------------------------------- construction
+    #: Share of the open cost each phase takes. MEASURED, not guessed -- across faction_cd_mp,
+    #: zm_transit_gump_labs, patch_zm and patch_ui_mp the split was:
+    #:     read 0.2%   decompress 89.9-99.0%   enumerate 0.9-10.0%   facts 0.1%
+    #: Decompression is almost the whole job, which is the opposite of what the first cut of
+    #: this assumed (52%) -- and a bar that treats it as half fills to 50% and then appears to
+    #: hang for the rest of the wall clock. `enumerate` is weighted at the TOP of its measured
+    #: range so the bar under-promises rather than stalling at the end.
+    OPEN_PHASES = (('reading', 0.01), ('decompressing', 0.90),
+                   ('enumerating assets', 0.08), ('reading zone facts', 0.01))
+
     @classmethod
     def open(cls, path, progress=None):
-        """Open a .ff (decrypt+decompress) or a raw .zone."""
+        """Open a .ff (decrypt+decompress) or a raw .zone.
+
+        `progress(fraction, label)` is called with an OVERALL 0..1 fraction and the name of the
+        phase in flight, so a caller can show both how far along it is and what it is doing.
+        """
+        def say(frac, label):
+            if progress:
+                try:
+                    progress(max(0.0, min(1.0, frac)), label)
+                except Exception:
+                    pass               # a UI hiccup must never fail an open
+
+        base = 0.0
+        weights = dict(cls.OPEN_PHASES)
+        say(0.0, 'reading')
         raw = open(path, 'rb').read()
+        base += weights['reading']
+
         if path.lower().endswith('.zone'):
             name = os.path.splitext(os.path.basename(path))[0]
-            return cls(raw, name, ff_path=path)
+            say(base, 'enumerating assets')
+            s = cls(raw, name, ff_path=path, progress=lambda f, l: say(base + f * (1 - base), l))
+            say(1.0, 'ready')
+            return s
+
         if not wiiu_ff.is_wiiu_fastfile(raw):
             raise ValueError('Not a Wii U fastfile (TAff0100 / version 148 expected): %s' % path)
-        hdr, zone, n = wiiu_ff.decrypt(raw, progress=progress)
-        return cls(zone, hdr['name'], ff_path=path, header=hdr, chunks=n)
+        say(base, 'decompressing')
+        span = weights['decompressing']
+        hdr, zone, n = wiiu_ff.decrypt(
+            raw, progress=lambda d, t: say(base + span * (d / t if t else 0), 'decompressing'))
+        base += span
+        rest = 1.0 - base
+        s = cls(zone, hdr['name'], ff_path=path, header=hdr, chunks=n,
+                progress=lambda f, l: say(base + f * rest, l))
+        say(1.0, 'ready')
+        return s
 
     # ---------------------------------------------------------------- assets
     @property
@@ -472,17 +524,41 @@ class ZoneSession(object):
                 'different boundaries, which means the edit corrupted the asset stream. Refusing.'
                 % (len(self.assets), len(after.assets), expected))
 
-    def save(self, out_path=None, verify=True):
-        """Build, verify, pack and write. Returns a dict describing what happened."""
+    #: Share of the save cost per phase, measured on patch_zm: build+verify 0.65s, compress
+    #: 2.73s, write 0.11s of a 3.49s save. Compression dominates and is the one phase that can
+    #: report from inside; the rest are announced at their boundaries.
+    #: ⚠ These hold for an IN-PLACE save. A growing save also runs the relink inside `building`,
+    #: which can outweigh compression -- the bar will then sit in `building` longer than the
+    #: weight suggests. That is visible and honest rather than wrong: the phase name says what
+    #: is happening.
+    SAVE_PHASES = (('building', 0.08), ('verifying', 0.10),
+                   ('compressing', 0.78), ('writing', 0.04))
+
+    def save(self, out_path=None, verify=True, progress=None):
+        """Build, verify, pack and write. Returns a dict describing what happened.
+
+        `progress(fraction, label)` reports an OVERALL 0..1 fraction and the phase in flight.
+        """
+        def say(frac, label):
+            if progress:
+                try:
+                    progress(max(0.0, min(1.0, frac)), label)
+                except Exception:
+                    pass               # a UI hiccup must never fail a save
+
+        w = dict(self.SAVE_PHASES)
         out_path = out_path or self.ff_path
         if not out_path:
             raise ValueError('no output path')
+        say(0.0, 'building')
         zone, plan = self.build_zone()
+        done = w['building']
 
         result = dict(strategy=plan.strategy, delta=plan.total_delta,
                       edits=len(plan.edits), zone_bytes=len(zone), verified=False)
 
         if verify:
+            say(done, 'verifying')
             from . import verify as _verify
             # ⚠ Compare the CONTAINER asset_count, not len(self.assets). Six assets in
             # patch_mp legitimately have no body (bodyless / no root struct) and so never
@@ -495,11 +571,19 @@ class ZoneSession(object):
                 raise RuntimeError('verification failed, refusing to write: %s'
                                    % '; '.join(v.problems))
             result['verified'] = True
+        done += w['verifying']
 
+        say(done, 'compressing')
         if out_path.lower().endswith('.zone'):
             blob = zone
         else:
-            blob = wiiu_ff.pack(zone, self.name)
+            span = w['compressing']
+            blob = wiiu_ff.pack(
+                zone, self.name,
+                progress=lambda d, t: say(done + span * (d / t if t else 0), 'compressing'))
+        done += w['compressing']
+
+        say(done, 'writing')
         with open(out_path, 'wb') as fh:
             fh.write(blob)
 
@@ -515,6 +599,7 @@ class ZoneSession(object):
         self._raw.clear()
         self.enumeration = _assets.enumerate_zone(zone)
         self.facts = ZF.Facts(zone, name=self.name)
+        say(1.0, 'saved')
         return result
 
     # ---------------------------------------------------------------- misc

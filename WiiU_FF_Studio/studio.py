@@ -99,6 +99,16 @@ class Studio(tk.Tk):
         self.minsize(1060, 660)
         self.configure(bg=theme.BG)
         theme.install(self)
+        # ⛔ BEFORE ANYTHING ELSE CAN FAIL. Tk hands callback exceptions to
+        # report_callback_exception, whose default writes to stderr -- and a --windowed build has
+        # no stderr, so every fault while opening a pak, scrolling a list or painting a preview
+        # vanished silently and left a dead widget behind. Installing this first is what makes
+        # "it crashed" reportable instead of a guess.
+        try:
+            from core import uiutil as _ui
+            self.crash_log = _ui.install_crash_handler(self, APP_TITLE)
+        except Exception:
+            self.crash_log = None
 
         # `apply_icon` uses iconbitmap(default=...), which makes this the icon for EVERY window
         # the app opens. Setting it without `default=` (as this did) left every dialog and
@@ -366,11 +376,35 @@ class Studio(tk.Tk):
         if views:
             doc.label = "%s  (%d)" % (doc.label, views + 1)
         ws.on_title(lambda _w, text, d=doc: self._on_ws_title(d, text))
+        ws.on_document(lambda _w, p, d=doc: self._on_ws_document(d, p))
         self.docs.append(doc)
         self._note_recent(path)
         self._rebuild_tabs()
         self._activate(doc)
         self.say("Opened %s" % os.path.basename(path), theme.OK)
+
+    def _on_ws_document(self, doc, path):
+        """A tool opened a DIFFERENT file into its existing tab. Re-point the document at it.
+
+        Everything the shell shows about a tab is derived from `doc.path`, so leaving it stale
+        left the tab caption, the window title, the status line and the recent list all naming
+        the file that was open BEFORE -- while the tool showed the new one. The duplicate check
+        in `open_file` keys off the same field, so it also mis-fired.
+        """
+        if not path:
+            return
+        doc.path = path
+        doc.kind = kind_for(path) or doc.kind
+        base = os.path.basename(path)
+        views = sum(1 for d in self.docs
+                    if d is not doc and d.path
+                    and os.path.abspath(d.path) == os.path.abspath(path))
+        doc.label = '%s  (%d)' % (base, views + 1) if views else base
+        self._note_recent(path)
+        self._rebuild_tabs()
+        if doc is self.active:
+            self.title('%s -- %s' % (APP_TITLE, doc.label))
+            self.say('Opened %s' % base, theme.OK)
 
     def _on_ws_title(self, doc, text):
         """A tool renamed itself (usually 'Tool -- file'); keep the tab honest without
@@ -1146,61 +1180,70 @@ class Studio(tk.Tk):
         def p(s, tag=None):
             txt.insert("end", s + "\n", tag or ())
 
-        p("Open a file and the window changes to suit it. Four kinds are supported, and any "
-          "number can be open at once as tabs.")
+        p("Open a file and the window changes to suit it. Fastfiles, texture paks, sound banks "
+          "and engine modules, any number of them open at once as tabs.")
+
+        # ⚠ SETUP COMES FIRST, DELIBERATELY. Both of these used to sit BELOW the four format
+        # sections -- the signature warning five headings down, and "point at your game folder"
+        # mentioned only in passing under Sound banks. They are the two things that make every
+        # later edit either work or silently do nothing, so they lead.
+        h("Set this up first")
+        p("A fastfile this tool saves has no valid signature, and an unmodified console refuses "
+          "unsigned fastfiles. Your edit will not load, however perfect it is. Open the RPL tab "
+          "and apply the signature patch to BOTH t6_cafef_rpl.rpl and t6mp_cafef_rpl.rpl before "
+          "you edit anything. This is the most common reason an edit 'does nothing'. A stock "
+          "backup is kept the first time you patch a file.", "warn")
+        p("Then click Game folders and add the content folder of your install, the one holding "
+          "the .ipak and .ff files. Names, formats and dimensions all come from your own game "
+          "files, and so does the warning that a texture you are editing also lives in a pak "
+          "that loads earlier. Cemu installs are found automatically, as is the folder you open "
+          "a file from.")
 
         h("Fastfiles  (.ff)")
-        p("A zone: the packaged assets for a map, the menus, or the shared game data. You can "
-          "browse every asset, edit and grow GSC scripts, Lua/HKS, and raw text/cfg/csv files, "
-          "preview models in 3D, and add new scripts and raw files. Textures stored inside the "
-          "zone can be previewed, exported and replaced from the Textures button; the Sound "
-          "banks button shows which sound each id maps to.")
+        p("The packaged assets for a map, the menus, or shared game data. Browse every asset. "
+          "Edit and grow GSC and CSC scripts, Lua and HKS, and raw text, cfg and csv files. Add "
+          "new scripts and raw files. Preview models in 3D.")
+        p("Textures stored inside the zone are under the Textures button, and unlike pak "
+          "textures they can change resolution. Sound banks shows which sound each id maps to.")
+        p("When you grow a zone it is rebuilt, every pointer re-pointed, then re-walked. A file "
+          "whose walk broke is refused rather than written.")
 
         h("Texture paks  (.ipak)")
-        p("Where most textures actually live, streamed in as the game needs them. Preview, "
-          "export to PNG, replace with your own image, or add new entries. An image is split "
-          "across up to three parts holding different mip levels -- replacing covers every part "
-          "in the pak you have open, and the tool tells you if other parts live elsewhere.")
+        p("Where most textures live, streamed in as the game needs them. Preview, export to PNG, "
+          "replace with your own image, or add entries. An image is split across up to three "
+          "parts holding different mip levels; replacing covers every part in the pak you have "
+          "open, and you are told if other parts live elsewhere.")
 
         h("Sound banks  (.sabs / .sabl)")
-        p("The audio itself. Browse entries, see the waveform, play them, extract to WAV, and "
-          "replace or add sounds. Names come from the fastfiles, so point the tool at your game "
-          "folder to see them instead of hex ids.")
+        p("Browse entries, see the waveform, play them, extract to WAV, replace and add. Entries "
+          "you do not touch are written back byte for byte. Names come from your fastfiles, so "
+          "set Game folders to see them instead of hex ids.")
 
         h("Engine RPLs  (.rpl / .rpx)")
-        p("The game's code. Three patches are offered, each located by searching for the code "
-          "itself rather than a fixed address, so they work on any build. A stock backup is "
-          "kept automatically the first time you patch a file.")
-
-        h("Read this before you edit anything")
-        p("A fastfile this tool saves has no valid signature -- signing needs a private key "
-          "nobody outside the original developers has. An unmodified console REJECTS an "
-          "unsigned fastfile, so your edit will not load, even if the edit itself is perfect. "
-          "Apply the signature patch from the RPL tab to BOTH t6_cafef_rpl.rpl and "
-          "t6mp_cafef_rpl.rpl first. This is the single most common reason an edit 'does "
-          "nothing'.", "warn")
-        p("Cold start the game after deploying. Textures and banks stay cached, so a quick "
-          "reload can keep showing the old ones and make a good edit look broken.")
-        p("Keep backups. The tool backs up RPLs automatically; for everything else, copy the "
-          "original before you overwrite it.")
-        p("Nothing here has been verified on real hardware by the tool itself. Its checks prove "
-          "files are well formed and round-trip correctly -- not that the console accepts them.")
+        p("The game's code. Three patches: the fastfile signature check, the DLC load gate, and "
+          "the internal render resolution. Each is located by searching for the code itself "
+          "rather than a fixed address, so they work on any build.")
 
         h("Finding things")
         p("Find asset (Ctrl+F) searches every texture name and tells you which pak or fastfile "
-          "holds it. If a texture appears in more than one pak it is flagged, because the game "
-          "uses whichever loads first -- editing a later copy does nothing at all.")
+          "holds it. A texture appearing in more than one pak is flagged, because the game uses "
+          "whichever loads first and editing a later copy does nothing.")
+        p("Bulk replace takes a folder of images named the way the game names them, works out "
+          "every pak and fastfile carrying each one, and rewrites them in a single pass. Drag "
+          "files or folders onto the window, or use the buttons. Nothing is written until you "
+          "confirm, everything touched is backed up, and anything it cannot match is reported "
+          "while the rest carries on.")
+        p("Images can be .png .dds .tga .bmp .jpg .gif .tif or .webp, with DDS covered in full "
+          "(DXT1-5, BC4/5/6H/7, DX10). Whatever you supply is re-encoded into the format the "
+          "zone declares for that entry.")
 
-        h("Replacing a lot of textures at once")
-        p("Bulk replace takes a folder of images named the way the game names them -- which is "
-          "what a PC texture mod is -- works out every pak and fastfile carrying each one, and "
-          "rewrites them all in a single pass. Drag files or folders onto the window, or use the "
-          "buttons. Nothing is written until you confirm, everything touched is backed up first, "
-          "and anything it cannot match is reported while the rest carries on.")
-        p("Images can be .png .dds .tga .bmp .jpg .gif .tif or .webp -- DDS included in full "
-          "(DXT1-5, BC4/5/6H/7, DX10), because that is what PC mods ship. Whatever you supply is "
-          "re-encoded into the format the zone declares for that entry, so pak entries keep their "
-          "exact size and are resized to fit, while inline zone images may change resolution.")
+        h("Worth knowing")
+        p("Cold start the game after deploying. Textures and banks stay cached, so a quick "
+          "reload can keep showing the old ones and make a good edit look broken.")
+        p("Keep backups. RPL patches back themselves up; for everything else, copy the original "
+          "before you overwrite it.")
+        p("Nothing here has been verified on real hardware by the tool itself. Its checks prove "
+          "files are well formed and round-trip correctly, not that the console accepts them.")
 
         h("Credits")
         p("Built by ToeKnee -- https://github.com/tonytrawl")
@@ -1710,11 +1753,20 @@ def _run_selftest(quiet=False):
         else:
             import canonical_gate as CG
             cg_rows, cg_failed = CG.check()
-            detail = '%d guarded copy check(s), %d failed' % (len(cg_rows), cg_failed)
+            # A guard whose module is absent from this tree reports 'skip'. Count it separately --
+            # the release snapshot ships a subset of the repo, so some guards legitimately have
+            # nothing to look at, and folding those into the checked total would overstate what
+            # this gate proved.
+            cg_skipped = sum(1 for s, _n, _d in cg_rows if s == 'skip')
+            detail = '%d guarded copy check(s), %d failed' % (
+                len(cg_rows) - cg_skipped, cg_failed)
             if cg_failed:
                 detail += ' | ' + '; '.join(d for s, _n, d in cg_rows if s == 'FAIL')
             else:
                 detail += ' (no non-canonical copy defines its own code)'
+            if cg_skipped:
+                detail += ' | %d guard(s) skipped, module not in this tree: %s' % (
+                    cg_skipped, ', '.join(n for s, n, _d in cg_rows if s == 'skip'))
             add('W13', cg_failed == 0, detail)
     except Exception as ex:
         add('W13', False, '%s: %s' % (type(ex).__name__, ex))
@@ -1795,6 +1847,35 @@ def _run_selftest(quiet=False):
         _cancel_after(app); app.destroy()
     except Exception as ex:
         add('W15', False, '%s: %s' % (type(ex).__name__, ex))
+
+    # W16 a tool that opens ANOTHER file into its existing tab must re-point the document.
+    # Without this the tab caption, the window title, the recent list and the already-open
+    # check all keep naming the file that was open BEFORE, while the tool shows the new one --
+    # reported from the field as "the tab still says ui_zm after opening patch_zm".
+    try:
+        two = _find_samples(per_kind=2)
+        pair = next((v for v in two.values() if len(v) >= 2), None)
+        if not pair:
+            rows.append(('SKIP', 'W16', 'need two files of one kind on this machine'))
+        else:
+            app = Studio()
+            app.withdraw()
+            app.open_file(pair[0])
+            doc = app.docs[-1]
+            was = (doc.path, doc.label)
+            # this is exactly what an IDE calls after a successful internal open
+            doc.workspace.set_document(pair[1])
+            ok = (doc.path == pair[1]
+                  and os.path.basename(pair[1]) in doc.label
+                  and doc.label != was[1])
+            rows.append(('PASS' if ok else 'FAIL', 'W16',
+                         'tab re-pointed %s -> %s (label %r -> %r)'
+                         % (os.path.basename(was[0] or '?'), os.path.basename(pair[1]),
+                            was[1], doc.label) if ok else
+                         'stale after set_document: path=%r label=%r' % (doc.path, doc.label)))
+            _cancel_after(app); app.destroy()
+    except Exception as ex:
+        rows.append(('FAIL', 'W16', '%s: %s' % (type(ex).__name__, ex)))
 
     failed = sum(1 for s, _g, _d in rows if s == 'FAIL')
     text = '%s %s shell gate battery\nfrozen: %s\n\n' % (

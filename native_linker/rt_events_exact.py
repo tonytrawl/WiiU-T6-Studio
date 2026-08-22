@@ -17,6 +17,7 @@ XAnimParts (byte-exact on 3/3 measured assets):
 Usage: pass via loader_sim policy seam:
     policy=dict(extra_events=rt_events_exact.EXTRA_EVENTS, ...)
 """
+import os
 import struct
 
 from alloc_events import Ev, PTRS
@@ -211,9 +212,65 @@ def anchor_rt(simmap_pkl, realmap_pkl, needle_model=None):
     non-WVD band — do not "correct" it against the existing gates, which are
     structurally blind to it (ST-dedup is self-consistency with aliases this same
     map baked, so it cannot detect a systematic offset either)."""
-    return {i: rv for (i, root, s, rv, ok, why)
-            in _anchor_scan(simmap_pkl, realmap_pkl, needle_model)
-            if ok}
+    tbl = AnchorTable((i, rv) for (i, root, s, rv, ok, why)
+                      in _anchor_scan(simmap_pkl, realmap_pkl, needle_model) if ok)
+    tbl.manifest = anchor_manifest(simmap_pkl)
+    return tbl
+
+
+class AnchorTable(dict):
+    """`{asset_index: runtime_offset}` that also carries the IDENTITY of the simmap it was
+    built from, so a consumer can refuse a stale table.
+
+    It is a plain `dict` subclass on purpose: every existing consumer treats the result as a
+    mapping (`set(...)`, `.get(i)`, iteration) and keeps working untouched. Only the
+    consumers that WANT the manifest look for it."""
+    manifest = None
+
+
+def anchor_manifest(simmap_pkl):
+    """The identity of a simmap, for STALENESS CHECKING at the point of use.
+
+    ⛔ WHY THIS EXISTS -- THE DEFECT IT CATCHES, WHICH IS NOT THE ONE WE THOUGHT.
+    This lane spent a campaign believing `anchor_rt` was keyed in the wrong index DOMAIN
+    (a claimed +3 from bodyless GLASSES rows). That was WRONG and is retracted: measured on
+    `_zmnuked_simmap.pkl`, 3,089 body spans + 71 skipped bodyless rows == max stored index
+    3,159 + 1, and `produce_nobackbone.py`'s `meta` appends bodyless rows too -- so both
+    sides index the same `out_assets` positions and the domains AGREE. The "+3" was
+    `produce_nobackbone.py:277`'s `idx_remap` (PC array index -> console array index), a
+    different mapping read as this one.
+
+    ⭐ THE REAL DEFECT IS STALE VALUES. A simmap is a STORED ARTEFACT from an earlier build.
+    Its indices stay valid only while the asset list keeps its shape. Measured: the stored
+    `_zmnuked_simmap.pkl` carries 3,089 body spans and matches b94 exactly, but b102 has
+    3,099 -- the TEN aliased-techset bodies b96 emitted. Positions did not move, so every
+    anchor still names the right asset; but every VALUE downstream of the first new body was
+    measured against a stream ten bodies shorter. Re-phasing to those values walks assets at
+    addresses that no longer exist.
+
+    Nothing detected this. The anchors applied silently, the build succeeded, and the error
+    landed in minted pointers.
+
+    THE COMPARISON IS AGAINST THE CURRENT BUILD'S ACTUAL ASSET LIST, not a derivation from
+    the same source (PM ruling): a table is fresh only if, for every span the simmap
+    recorded, the current list has that index AND the same asset NAME there. That also
+    closes -- without needing a separate proof -- the open question of whether pass-2's
+    `out_assets` and the final `out_assets` can ever differ in row count: if they can, the
+    divergence trips this check instead of passing unnoticed.
+
+    Properties compared (state these in any receipt that cites a pass):
+        (1) row count      -- the current list must be long enough for the highest index
+        (2) per-row identity -- assets[i][0] == the name the simmap recorded at i
+    NOT compared: body lengths, offsets, or runtime values -- those legitimately move
+    between builds, which is the whole reason the index domain is used in the first place."""
+    import hashlib
+    import pickle
+    S = pickle.load(open(simmap_pkl, 'rb'))
+    rows = [(i, nm) for (i, nm, root, s, e) in S['spans']]
+    return dict(source=os.path.basename(simmap_pkl),
+                md5=hashlib.md5(open(simmap_pkl, 'rb').read()).hexdigest(),
+                n_spans=len(rows), max_index=max([r[0] for r in rows], default=-1),
+                rows=rows)
 
 
 #: reject reason codes emitted by `_anchor_scan` / `anchor_rt_report`

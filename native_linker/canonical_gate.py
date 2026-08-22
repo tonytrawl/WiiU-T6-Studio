@@ -84,8 +84,27 @@ def check():
     rows, failed = [], 0
     for name, (canon, copies) in sorted(GUARDED.items()):
         if not os.path.exists(canon):
-            rows.append(('FAIL', name, 'canonical missing: %s' % canon))
-            failed += 1
+            # ⚠ A CURATED TREE IS NOT A BROKEN TREE. The release snapshot ships a subset of this
+            # repo, so a guarded module can be absent here in full -- canonical AND every copy.
+            # There is then nothing that could diverge and nothing this gate can prove, so it says
+            # SKIP rather than FAIL. Measured: the release tree failed W13 on `grow_relink.py`,
+            # which it deliberately does not ship (the studio uses its own corrected relinker,
+            # core/relink.py), and a permanently-red gate is one people learn to ignore.
+            # ⛔ THE DANGEROUS CASE STAYS A FAILURE. Canonical gone but a COPY still present means
+            # the copy is the only survivor and nothing can establish whether it is the good one --
+            # strictly worse than the divergence this gate was built for.
+            live = [p for p in copies if os.path.exists(p)]
+            if live:
+                rows.append(('FAIL', name,
+                             'canonical missing (%s) but %d copy/copies remain: %s -- an '
+                             'unverifiable copy is worse than a divergent one'
+                             % (canon, len(live),
+                                ', '.join(os.path.relpath(p, ROOT) for p in live))))
+                failed += 1
+            else:
+                rows.append(('skip', name,
+                             'not in this tree (canonical and all %d guarded copy/copies absent) '
+                             '-- nothing to diverge' % len(copies)))
             continue
         cdefs = definitions(canon)
         if not cdefs:
@@ -122,7 +141,11 @@ def main():
     for status, name, detail in rows:
         print('  %-4s %-*s %s' % (status.upper(), w, name, detail))
     print()
-    print('  %d checked, %d failed' % (len(rows), failed))
+    skipped = sum(1 for r in rows if r[0] == 'skip')
+    # Report skips separately: a guard that could not run found nothing, and a count that folds
+    # it into "checked" reads as coverage this gate did not actually provide.
+    print('  %d checked, %d failed, %d skipped (module absent from this tree)'
+          % (len(rows) - skipped, failed, skipped))
     if failed:
         print('  A duplicated module that carries its own code will drift, and nothing else in '
               'this project notices until a lane writes a broken zone.')

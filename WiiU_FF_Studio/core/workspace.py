@@ -39,6 +39,7 @@ class Workspace(tk.Frame):
         self._ws_title = None
         self._ws_close = None
         self._ws_title_cb = None       # shell hook: called when the tool sets a title
+        self._ws_doc_cb = None         # shell hook: called when the tool opens a DIFFERENT file
         self._ws_menu = None           # the tool's own menubar, if it built one
         self._ws_menu_cb = None        # shell hook: called when the tool sets a menubar
         self._ws_dirty = False
@@ -247,6 +248,28 @@ class Workspace(tk.Frame):
     def on_title(self, callback):
         self._ws_title_cb = callback
 
+    def on_document(self, callback):
+        self._ws_doc_cb = callback
+
+    def set_document(self, path):
+        """Tell the shell this workspace now holds a DIFFERENT file.
+
+        ⚠ WITHOUT THIS THE TAB LIES. The shell names a tab from the path it opened, so a tool
+        that opens another file through its OWN Open button leaves the tab, the window title,
+        the recent list and the status line all describing the previous file -- and the
+        already-open check keys off the stale path, so re-opening the file it actually holds
+        offers to open a "second view" of something that is not on screen.
+
+        Tools must call this after a successful internal open. It is a no-op when the tool is
+        running standalone rather than hosted.
+        """
+        if not path or not self._ws_doc_cb:
+            return
+        try:
+            self._ws_doc_cb(self, path)
+        except Exception:
+            pass                       # a shell display hiccup must not break the tool
+
 
 def run_standalone(cls, initial=None, title=None, icon=None, size="1280x820",
                    minsize=(1000, 640)):
@@ -258,6 +281,11 @@ def run_standalone(cls, initial=None, title=None, icon=None, size="1280x820",
     root = tk.Tk()
     root.configure(bg=theme.BG)
     theme.install(root)
+    try:                            # same reason as in the shell: no stderr in a windowed build
+        from . import uiutil as _ui
+        _ui.install_crash_handler(root, title or 'WiiU T6 Studio')
+    except Exception:
+        pass
     if title:
         root.title(title)
     root.geometry(size)

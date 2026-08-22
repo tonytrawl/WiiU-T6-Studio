@@ -536,7 +536,20 @@ class IDE(Workspace):
             try:
                 import numpy as _np
                 src = Image.open(p).convert("RGBA")
-                ZI.replace(self.session, im, _np.asarray(src, _np.uint8))
+                arr = _np.asarray(src, _np.uint8)
+                # What sizes can this picture actually be stored at? The enhanced one is
+                # whatever the SOURCE supports, capped at 2x, and preferentially one that fits
+                # the existing allocation -- see core.zone_images.resize_choices.
+                choices = ZI.resize_choices(im, src.width, src.height)
+                pick = choices[0]
+                if len(choices) > 1:
+                    pick = self._ask_texture_size(im, src.width, src.height, choices)
+                    if pick is None:
+                        return
+                if pick.width == im.width and pick.height == im.height:
+                    ZI.replace(self.session, im, arr)
+                else:
+                    ZI.stage_resize(self.session, im, arr, pick.width, pick.height)
             except Exception as ex:
                 messagebox.showerror(APP_TITLE, "Replace refused:\n\n%s: %s"
                                      % (type(ex).__name__, ex))
@@ -547,15 +560,24 @@ class IDE(Workspace):
             # ORIGINAL -- which reads as "the replace silently failed" when it actually worked.
             state['staged'][im.off] = True
             undo_btn.configure(state="normal")
+            state['_pv'] = None
+            state['_pv_gen'] = None
             show()
+            grew = (pick.width, pick.height) != (im.width, im.height)
             messagebox.showinfo(
                 APP_TITLE,
-                "Staged a replacement for %s.\n\nIt is re-encoded to the image's existing "
-                "format and dimensions (%s) and occupies exactly the same %s bytes, so the "
-                "zone's layout is unchanged.\n\nSave the fastfile to write it. Note that a "
-                "length-neutral image patch CANNOT be combined with a growing script edit -- "
+                "Staged a replacement for %s.\n\n%s\n\nSave the fastfile to write it. Note that "
+                "a length-neutral image patch CANNOT be combined with a growing script edit -- "
                 "save this first, then reopen for any edit that changes a size."
-                % (im.label, im.dims, format(im.pixel_len, ',')))
+                % (im.label,
+                   ("Stored at %dx%d instead of %s -- %.2fx larger, in the SAME %s bytes the "
+                    "texture already occupied, so the zone's layout is unchanged."
+                    % (pick.width, pick.height, im.dims, pick.factor,
+                       format(im.pixel_len, ',')))
+                   if grew else
+                   ("Re-encoded to the image's existing format and dimensions (%s), occupying "
+                    "exactly the same %s bytes, so the zone's layout is unchanged."
+                    % (im.dims, format(im.pixel_len, ',')))))
             show()
 
         # `bar` itself is created and packed ABOVE, before the body, so it can never be clipped.
@@ -1084,6 +1106,89 @@ class IDE(Workspace):
                                     mode="determinate", maximum=1000)
         self.pbar.pack(side="right", padx=10, pady=4)
 
+    def _ask_texture_size(self, im, src_w, src_h, choices):
+        """Store the picture at the texture's own size, or at the larger size it supports?
+
+        Returns the chosen SizeChoice, or None if the user cancelled.
+
+        ⚠ Buttons are packed side="bottom" BEFORE the body. Tk allocates space in PACK ORDER,
+        so anything packed after an expanding sibling is starved first and the buttons vanish
+        off the bottom at small window sizes -- the exact defect fixed in the About window.
+        """
+        orig = choices[0]
+        big = choices[-1]
+        win = tk.Toplevel(self)
+        win.title("Replacement size")
+        win.transient(self.winfo_toplevel())
+        win.resizable(False, False)
+        win.configure(bg=BG)
+        result = {'pick': None}
+
+        def choose(c):
+            result['pick'] = c
+            win.destroy()
+
+        btns = tk.Frame(win, bg=BG)
+        btns.pack(side="bottom", fill="x", padx=14, pady=(4, 12))
+        ttk.Button(btns, text="Cancel", style="Ghost.TButton",
+                   command=win.destroy).pack(side="right")
+        ttk.Button(btns, text="Keep %s" % orig.dims, style="Ghost.TButton",
+                   command=lambda: choose(orig)).pack(side="right", padx=6)
+        ttk.Button(btns, text="Use %s" % big.dims, style="Accent.TButton",
+                   command=lambda: choose(big)).pack(side="right")
+
+        body = tk.Frame(win, bg=BG)
+        body.pack(side="top", fill="both", expand=True, padx=14, pady=(14, 6))
+        tk.Label(body, text=im.label, bg=BG, fg=TEXT, font=("Segoe UI Semibold", 11),
+                 anchor="w").pack(fill="x")
+        tk.Label(body, text="Your picture is %dx%d; the texture is %s."
+                            % (src_w, src_h, orig.dims),
+                 bg=BG, fg=MUTED, font=("Segoe UI", 9), anchor="w").pack(fill="x", pady=(2, 10))
+
+        cost = ("no extra bytes -- it fits the space the texture already occupies"
+                if big.delta == 0 else
+                "%s extra bytes, which needs the zone to grow" % format(big.delta, ','))
+        for head, txt in (
+            ("Keep %s" % orig.dims,
+             "Downscale the picture to the texture's current size."),
+            ("Use %s  (%.2fx)" % (big.dims, big.factor),
+             "Store it at the larger size -- %s." % cost),
+        ):
+            tk.Label(body, text=head, bg=BG, fg=TEXT, font=("Segoe UI Semibold", 9),
+                     anchor="w").pack(fill="x", pady=(6, 0))
+            tk.Label(body, text=txt, bg=BG, fg=MUTED, font=("Segoe UI", 9),
+                     anchor="w", justify="left", wraplength=380).pack(fill="x")
+
+        win.update_idletasks()
+        win.minsize(420, win.winfo_reqheight())
+        try:
+            r = self.winfo_toplevel()
+            win.geometry('+%d+%d' % (r.winfo_rootx() + 90, r.winfo_rooty() + 90))
+        except Exception:
+            pass
+        win.grab_set()
+        win.wait_window()
+        return result['pick']
+
+    def _say(self, msg, colour=MUTED):
+        """Status-bar line. Same signature as ipak_ide._say, deliberately.
+
+        ⚠ THIS WAS CALLED IN THREE PLACES AND NEVER DEFINED. The zone-image window used
+        `self._say(...)` (export, staged replace, undo staged) while the rest of this class writes
+        `self.status.config(...)`, so every one of those three raised AttributeError. Two of them
+        were worse than they looked:
+          * export: the call sits INSIDE the try, so export_png had already written the PNG. The
+            AttributeError was then caught and reported to the user as "Export failed", which is
+            the opposite of what happened.
+          * replace: the call sits AFTER the try, so the bytes were staged but the exception
+            escaped before `undo_btn` was enabled and the preview refreshed, leaving a staged edit
+            the window did not admit to.
+        Defining the method once is the fix; rewriting three call sites would leave the next
+        `_say` to fail the same way.
+        """
+        self.status.config(text=msg, fg=colour)
+        self.update_idletasks()
+
     # ------------------------------------------------------------------ plumbing
     def _yview(self, *a):
         self.txt.yview(*a)
@@ -1142,6 +1247,8 @@ class IDE(Workspace):
         if not p:
             return
         self._busy = True
+        self._phase = None
+        self._busy_path = p
         self.pbar["value"] = 0
         self.status.config(text="Opening %s ..." % os.path.basename(p))
         threading.Thread(target=self._worker_open, args=(p,), daemon=True).start()
@@ -1149,7 +1256,7 @@ class IDE(Workspace):
     def _worker_open(self, p):
         try:
             s = ZoneSession.open(
-                p, progress=lambda d, t: self._q.put(("progress", d / t if t else 0)))
+                p, progress=lambda f, label: self._q.put(("progress", f, label)))
             self._q.put(("opened", s))
         except Exception as ex:
             self._q.put(("err", "%s: %s" % (type(ex).__name__, ex)))
@@ -1157,6 +1264,11 @@ class IDE(Workspace):
     def _apply_open(self, s):
         self.session = s
         self.cur = None
+        # ⚠ TELL THE SHELL FIRST. This method used to swap the session and refill the list
+        # without announcing anything, so the tab caption, the window title, the recent list and
+        # the shell's status line all kept naming the PREVIOUS file while this one was on screen.
+        self.set_document(getattr(s, 'ff_path', None))
+        self.title("%s -- %s" % (APP_TITLE, os.path.basename(getattr(s, 'ff_path', '') or s.name)))
         self._refill()
         e = s.enumeration
         bits = ["%d assets" % len(s.assets), "%s B" % format(len(s.zone), ",")]
@@ -1531,12 +1643,16 @@ class IDE(Workspace):
             if not out:
                 return
         self._busy = True
+        self._phase = None
+        self._busy_path = out
+        self.pbar["value"] = 0
         self.status.config(text="Building + verifying...")
         threading.Thread(target=self._worker_save, args=(out,), daemon=True).start()
 
     def _worker_save(self, out):
         try:
-            res = self.session.save(out)
+            res = self.session.save(
+                out, progress=lambda f, label: self._q.put(("progress", f, label)))
             self._q.put(("saved", res))
         except Exception as ex:
             self._q.put(("err", "%s: %s" % (type(ex).__name__, ex)))
@@ -1549,8 +1665,18 @@ class IDE(Workspace):
                 kind = item[0]
                 if kind == "progress":
                     self.pbar["value"] = int(item[1] * 1000)
+                    # ⚠ SAY WHICH PHASE. A bar that fills during decompression and then sits
+                    # still through the asset walk reads as a hang; naming the phase makes the
+                    # quiet stretch legible instead of alarming.
+                    label = item[2] if len(item) > 2 else None
+                    if label and label != getattr(self, '_phase', None):
+                        self._phase = label
+                        what = os.path.basename(getattr(self, '_busy_path', '') or '')
+                        self.status.config(text=("%s %s ..." % (label.capitalize(), what)).strip()
+                                           if what else "%s ..." % label.capitalize())
                     continue
                 self._busy = False
+                self._phase = None
                 self.pbar["value"] = 0
                 if kind == "err":
                     self.status.config(text="Error: " + item[1])

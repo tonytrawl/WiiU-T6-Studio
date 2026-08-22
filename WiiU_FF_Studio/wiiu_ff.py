@@ -148,6 +148,7 @@ def decrypt(data, key=KEY_WIIU, progress=None):
     total = len(data)
     out = bytearray()
     n = 0
+    consumed = HEADER_DATA_START
     for i, enc in enumerate(_iter_chunks(data)):
         stream = i % STREAM_COUNT
         iv = chain.iv(stream)
@@ -160,14 +161,24 @@ def decrypt(data, key=KEY_WIIU, progress=None):
                 f"chunk {i} (stream {stream}) inflate failed: {e}\n"
                 f"  iv={iv.hex()} encLen={len(enc)} dec[:16]={dec[:16].hex()}")
         n += 1
-        if progress is not None and (n & 0x3f) == 0:
-            progress(min(HEADER_DATA_START + len(out), total), total)
+        consumed += 4 + len(enc)
+        # ⛔ REPORT INPUT CONSUMED, NOT OUTPUT PRODUCED. This used to compare `len(out)` -- the
+        # DECOMPRESSED byte count -- against `len(data)`, the COMPRESSED total. A zone
+        # compresses better than 2:1, so the ratio reached 1.0 roughly halfway through and the
+        # `min()` pinned it there for the rest of the run: the bar raced to full and then sat
+        # still. That is what "the progress bar lags behind" actually was, and no amount of
+        # reweighting the phases could have fixed it.
+        #
+        # Cadence: every 8th chunk (~256 KB), not every 64th (~2 MB). At 1-in-64 a 6 MB zone
+        # produced THREE updates across a 2.7-second decompress.
+        if progress is not None and (n & 0x07) == 0:
+            progress(min(consumed, total), total)
     if progress is not None:
         progress(total, total)
     return hdr, bytes(out), n
 
 
-def _deflate_chunks(zone):
+def _deflate_chunks(zone, progress=None):
     # Genuine layout: a 40-byte header block, then uniform 0x7FC0 blocks. The
     # first block is the DB zone header the loader reads before streaming; every
     # subsequent block stays under the fixed 0x8000 decompression buffer.
@@ -186,6 +197,14 @@ def _deflate_chunks(zone):
         chunks.append(comp)
         pos += len(raw)
         first = False
+        # ⚠ REPORT FROM IN HERE. This function returns a LIST, so every block is compressed
+        # before the caller's loop runs even once -- a caller counting its own iterations sees
+        # the work already finished and shows a bar that jumps straight to full.
+        if progress:
+            try:
+                progress(pos, len(zone))
+            except Exception:
+                pass
     return chunks
 
 
@@ -200,12 +219,16 @@ def build_header(name):
     return bytes(h)
 
 
-def pack(zone, name, key=KEY_WIIU):
-    """Decompressed zone bytes -> Wii U v148 fastfile bytes."""
+def pack(zone, name, key=KEY_WIIU, progress=None):
+    """Decompressed zone bytes -> Wii U v148 fastfile bytes.
+
+    `progress(done_bytes, total_bytes)` is called per chunk, mirroring `decrypt`. Compression is
+    the slowest phase of a save, so a caller with no way to report it shows a frozen bar.
+    """
     chain = HashChain(name)
     out = bytearray(build_header(name))
     vbuf_off = HEADER_DATA_START % VANILLA_BUFSIZE
-    for i, comp in enumerate(_deflate_chunks(zone)):
+    for i, comp in enumerate(_deflate_chunks(zone, progress=progress)):
         if vbuf_off + 4 > VANILLA_BUFSIZE:
             out += b'\x00' * (VANILLA_BUFSIZE - vbuf_off)
             vbuf_off = 0

@@ -216,7 +216,33 @@ def derive_reloc(zone, norm, anchors=None, auto_anchors=True):
 #     off >= span end   -> shifted by the sum of all preceding deltas
 
 
-def payload_ranges(zone):
+_PAYLOAD_CACHE = {}
+
+
+def _zone_key(zone):
+    """Cheap fingerprint: enough to tell two zones apart without hashing 130 MB every call."""
+    n = len(zone)
+    return (n, bytes(zone[:48]), bytes(zone[n // 2:n // 2 + 48]), bytes(zone[-48:]))
+
+
+def image_payload_ranges(zone):
+    """Pixel spans of every INLINE GfxImage. Pure data by definition.
+
+    ⚠ THESE ARE NOT ASSETS, so the asset walk below cannot see them, and until this existed
+    every pixel byte was scanned for pointers. Measured on common_mp.ff: 30,736,384 bytes of
+    inline pixels hold 3,560,842 words that decode as a plausible block-5 alias -- more than
+    half of the whole zone's apparent pointer population, every one of them a phantom.
+    """
+    try:
+        from . import zone_images as _ZI
+        return sorted((im.pixel_off, im.pixel_off + im.pixel_len)
+                      for im in _ZI.list_images(zone, inline_only=True)
+                      if im.pixel_off is not None and im.pixel_len)
+    except Exception:
+        return []
+
+
+def payload_ranges(zone, use_cache=True):
     """Byte ranges that are pure DATA, not pointer fields (the PHANTOM LAW overlap-filter).
 
     GSC bytecode, HavokScript bytecode and rawfile bodies routinely contain byte sequences that
@@ -224,9 +250,16 @@ def payload_ranges(zone):
     bytecode all "point" at rt 4135, which is itself inside that same bytecode -- they are GSC
     opcodes (1c 28 0a ...), not pointers.
 
+    INLINE TEXTURE PIXELS ARE THE SAME CLASS and are included here too -- see
+    `image_payload_ranges` for what leaving them out costs.
+
     A census that does not exclude these reports phantoms as real pointers, and would refuse
-    edits that are perfectly safe. Returns a sorted list of (start, end).
+    edits that are perfectly safe. Returns a sorted list of (start, end), non-overlapping.
     """
+    key = _zone_key(zone) if use_cache else None
+    if key is not None and key in _PAYLOAD_CACHE:
+        return _PAYLOAD_CACHE[key]
+
     from . import assets as _A
     out = []
     try:
@@ -235,8 +268,23 @@ def payload_ranges(zone):
                 out.append((a.buf_off, a.buf_off + a.buf_len))
     except Exception:
         pass
+    out.extend(image_payload_ranges(zone))
     out.sort()
-    return out
+
+    # `_in_ranges` binary-searches, which needs disjoint ranges; an inline image inside an
+    # asset body would otherwise make the search skip past a later range.
+    merged = []
+    for s, e in out:
+        if merged and s <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+        else:
+            merged.append((s, e))
+
+    if key is not None:
+        if len(_PAYLOAD_CACHE) > 8:
+            _PAYLOAD_CACHE.clear()
+        _PAYLOAD_CACHE[key] = merged
+    return merged
 
 
 def _in_ranges(ranges, off):

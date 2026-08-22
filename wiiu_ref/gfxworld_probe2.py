@@ -28,13 +28,49 @@ CFG = {
         occl_off=992, numoccl_off=988, water_off=956,   # occl_off = occluders PTR offset
     ),
     'wiiu': dict(
-        path='mp_raid_genuine.zone', endian='>', body=0x2b7029d, bodysize=1076,
+        path='mp_raid_genuine.zone', endian='>', body=0x2b7029d, bodysize=1096,
         draw=396, drawmap=dict(rpc=4, probes=8, lightmapCount=16, lightmaps=20,
                                vertexCount=32, size0=36, vd0data=44,
                                size1=68, vd1data=76, indexCount=100, indices=104),
         lightgrid=512, model_off=584, matmem_off=620, sun_off=628,
         outdoorImage=788, shadowGeom=824, lightRegion=828, dpvs=832, dpvsdyn=948,
-        gfxlight=372, fogmodvol=66,
+        # ⭐ CORRECTED 2026-08-20 (zm_nuked lane, item 4). These three were 1076 / 372 / 66.
+        # They were not merely imprecise: with them this walk ended 23,190,502 B before the
+        # GFXWORLD span end on zm_nuked b102 (64.59 % of the asset unmodelled), 11,946,411 B
+        # on genuine zm_transit, and 9,627,275 B on mp_mirage. That is the "15.8 MB desync
+        # on zm_nuked" this repo documented as a property of the map
+        # (gfxworld_portal_reloc.py:172, zone_gates.py:1874). It was one wrong constant.
+        #
+        # WHY IT SURVIVED: four stacked absorbers, every one of which left closure GREEN AND
+        # TRUE -- the skyBoxModel scan below, the cells slide below, parse_gfxworld_console's
+        # 32 MB signature scan, and gfxworld_console_events' trailing 'seg'. The span end was
+        # right the whole time BECAUSE an absorber made it so. See
+        # FINDINGS_i4_gfxworld_probe2_console.md and _b105_i4_*.py (six read-only probes).
+        #
+        #   bodysize 1096  Load_GfxWorld opens Load_Stream(r5=0x448) [rt_events_gfxworld.py:84];
+        #                  [body+1076, body+1096) measures ff*16 + 00*4 on every subject = the
+        #                  4 MaterialVertexShader FOLLOW handles + one zero word that
+        #                  gfxworld_emit.py:135 ALREADY writes. Alone it moves nothing -- the
+        #                  skyBoxModel scan absorbs it exactly (slides 20 at 1076, 0 at 1096).
+        #   gfxlight  352  CONTENT ORACLE, re-measured per subject: sunLight type@+0 == 1
+        #                  (DLIGHT_SUN) and |dir|@+20 == 1.000000 exactly, with a different
+        #                  real sun direction per map; at OAT's +20-shifted console offsets
+        #                  |dir|@+40 == 0. Seen-to-fail: it does NOT pass at both offsets.
+        #                  This is the constant that does the damage.
+        #   fogmodvol  48  T6_Assets.h sizes it 48. (66 is not even 4-aligned -- the tell that
+        #                  it was fitted.) ⚠ ZERO-POPULATION on zm_nuked
+        #                  (worldFogModifierVolumeCount == 0), so nuked cannot score it;
+        #                  it is required on zm_transit, which has one.
+        #
+        # ⛔ CONSEQUENCE, verified before landing: with these values the walk lands at
+        # span_end - 11,085 on genuine zm_transit, zm_nuked b102 AND mp_mirage -- three maps,
+        # two classes (retail and converted), identical to the byte. 11,085 is the fixed-size
+        # console SSkinShaders GX2 tail this walk was never written to parse
+        # (body_relayout.py:400). And the corrected walk reproduces 10/10 array bases of
+        # _b104_gfxworld_walk.py, an independent line-by-line port of OAT's GENERATED loader
+        # that shares no code, no constants and no method with this file; the SHIPPED
+        # constants reproduced 0/10.
+        gfxlight=352, fogmodvol=48,
         entry_size=4, coeff_size=54,
         surf_size=80, surf_mat=48, sminst_size=36, smdi_size=208,
         smdi_model=32, smdi_lmap=80, lmapinfo_size=32, lmap_cnt_off=24,

@@ -2,19 +2,25 @@
 """
 T6 LUI (HavokScript, Lua 5.1 fmt 0x0d) bytecode ENDIAN transcoder + validator.
 
-Format from Deewarz/CoDHVKDecompiler LuaFileT6.cs (T6 = HavokScript, NOT standard Lua 5.1):
-  Header: magic[4], luaVer, compilerVer, endian@[6], sizeInt, sizeSizeT, sizeInstr,
-          sizeNumber, integralFlag, gameByte, <1 skipped byte>, i32 constantTypeCount,
-          then constantTypeCount x { i32 id, i32 strLen, byte[strLen] }.
-  Function (recursive):
-    header: i32 upvalCount, i32 paramCount, u8 usesVararg, i32 registerCount,
-            i32 instructionCount, then PAD to 4-byte alignment (4 - pos%4 if 0<..<4).
-    instructions: instructionCount x 4 bytes (packed bitfield -> endian-swapped word).
-    constants: i32 count, each u8 type then: 0 nil=-; 1 bool=u8; 3 number=f32;
-               4 string=i32 len + len bytes (null-terminated); 13 hash=u64.
-    footer: i32 (unknown), f32 (unknown), i32 subFunctionCount.
-    subfunctions: subFunctionCount x Function.
-Everything multibyte is endian-swapped; strings/bytes pass through. PC=LE, WiiU=BE.
+MODEL CORRECTED 2026-08-21 -- this file now delegates the container model to
+WiiU_FF_Studio/core/hks.py (the proven per-proto model, gated by core/hks_selftest.py).
+The previous local walker encoded TWO wrong facts:
+
+  (1) it invented constant type 13 with an 8-byte payload. There is no type 13: the 8-byte
+      constant is LUA_TUI64 = type 11, and the per-proto hash is not a constant at all.
+  (2) it hardcoded a 12-byte per-proto footer (i32 + f32 + i32 nsubs). The real footer is
+      PER-PROTO and VARIABLE:  i32 debug_flag, then a 4-byte hash IFF flag == 1, then
+      i32 nsubs. Retail WiiU LUI ships flag 0 (8-byte gap); PC and our compiler emit
+      flag 1 (12-byte gap). Assuming 12 parses retail console chunks 4 bytes out of phase
+      per proto and truncates SILENTLY (measured: 30,513 B -> 3,534 B on
+      ui_mp/t6/zombie/selectstartloczombie.lua) -- and the truncated result re-parses
+      "exactly", so every consumed-the-buffer check passed.
+
+The flag-driven walk in core.hks handles both populations; a chunk that cannot be walked to
+its exact end RAISES (core.hks.HksError) instead of returning a plausible prefix.
+
+API is unchanged: transcode(blob, want_le) -> (bytes, consumed); consumed == len(blob) on
+success, always (partial consumption is now a refusal, never a return).
 
 Validate against the 45 matched WiiU/PC pairs in patch_ui_zm (gold: PC->BE == genuine WiiU):
   python "../dlc loading/native/fullrelink/lua_endian.py" validate
@@ -23,64 +29,27 @@ import sys, os, struct
 
 MAGIC = b'\x1bLua'
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
 
-class T6Lua:
-    def __init__(self, blob, want_le):
-        self.b = blob; self.p = 0
-        self.src_le = (blob[6] == 1)
-        self.se = 'little' if self.src_le else 'big'
-        self.want_le = want_le
-        self.out = bytearray()
-
-    def _swap(self, sz):
-        raw = self.b[self.p:self.p+sz]; self.p += sz
-        self.out += (raw[::-1] if self.src_le != self.want_le else raw)
-    def _bytes(self, n):
-        self.out += self.b[self.p:self.p+n]; self.p += n
-    def _rint(self):
-        raw = self.b[self.p:self.p+4]; self.p += 4
-        self.out += (raw[::-1] if self.src_le != self.want_le else raw)
-        return int.from_bytes(raw, self.se)
-
-    def function(self):
-        self._rint()                 # upvalCount
-        self._rint()                 # paramCount
-        self._bytes(1)               # usesVararg
-        self._rint()                 # registerCount
-        ic = self._rint()            # instructionCount
-        extra = 4 - (self.p % 4)     # align to 4 (pos-based, matches reader)
-        if 0 < extra < 4:
-            self._bytes(extra)
-        for _ in range(ic):          # instructions (4-byte packed words)
-            self._swap(4)
-        cc = self._rint()            # constant count
-        for _ in range(cc):
-            t = self.b[self.p]; self.out.append(t); self.p += 1
-            if   t == 0:  pass
-            elif t == 1:  self._bytes(1)
-            elif t == 3:  self._swap(4)
-            elif t == 4:  n = self._rint(); self._bytes(n)
-            elif t == 13: self._swap(8)
-            else: raise ValueError('const type %d @%d' % (t, self.p-1))
-        self._rint()                 # footer: unknown int
-        self._swap(4)                # footer: unknown float
-        sc = self._rint()            # subFunctionCount
-        for _ in range(sc):
-            self.function()
-
-    def transcode(self):
-        hdr = bytearray(self.b[0:14]); hdr[6] = 1 if self.want_le else 0
-        self.out += hdr; self.p = 14
-        for _ in range(self._rint()):     # constant-type table
-            self._rint(); n = self._rint(); self._bytes(n)
-        self.function()
-        return bytes(self.out), self.p
+# the container model lives in WiiU_FF_Studio/core/hks.py -- one owner, imported, not ported
+_STUDIO = os.path.join(_ROOT, 'WiiU_FF_Studio')
+if _STUDIO not in sys.path:
+    sys.path.insert(0, _STUDIO)
+from core import hks as _hks   # noqa: E402
 
 
 def transcode(blob, want_le):
+    """BE<->LE transcode via the per-proto flag-driven model.
+
+    Returns (out_bytes, consumed). Raises core.hks.HksError on anything that does not walk
+    to the exact end of the buffer -- a truncated or trailing-tail chunk is REFUSED, never
+    silently shortened.
+    """
     if blob[:4] != MAGIC:
         raise ValueError('not a Lua chunk')
-    return T6Lua(blob, want_le).transcode()
+    out = _hks.transcode(blob, want_le)
+    return out, len(blob)
 
 
 def _rawfiles(z, be):
@@ -134,9 +103,6 @@ def validate():
     for f in fails[:10]:
         print('  ', f)
 
-
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'validate':

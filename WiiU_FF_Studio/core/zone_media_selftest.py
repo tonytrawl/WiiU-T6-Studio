@@ -247,6 +247,42 @@ def run():
             detail += '; names %d/%d entries of the matching bank file' % cov
         b.add('Z6', 'PASS' if bank.aliases else 'FAIL', detail)
 
+    # ---- Z7 / Z7r a texture may be enlarged into its own padding, and NEVER past it -------
+    if not imgs:
+        b.add('Z7', 'SKIP', 'no zone with inline images to resize')
+    else:
+        fit, nofit, offered_bad, bad = 0, 0, 0, []
+        z_before = bytes(zone)
+        s7 = ZoneSession.open(zpath)
+        for im in ZI.list_images(s7.zone, inline_only=True):
+            # a deliberately huge source, so the cap and the allocation are what bound the answer
+            ch = ZI.resize_choices(im, 4000, 4000)
+            if len(ch) > 1:
+                if ch[-1].delta != 0:
+                    offered_bad += 1          # offering a size that cannot be delivered
+                fit += 1
+            else:
+                nofit += 1
+                # and the refusal must hold even when a caller asks for it directly
+                big_w, big_h = im.width * 2, im.height * 2
+                try:
+                    ZI.stage_resize(s7, im, np.zeros((big_h, big_w, 4), np.uint8), big_w, big_h)
+                    bad.append('%s accepted %dx%d, which does not fit its %d-byte buffer'
+                               % (im.label, big_w, big_h, im.pixel_len))
+                except ZI.ZoneImageError:
+                    pass
+        if offered_bad:
+            bad.append('%d texture(s) were OFFERED a size that does not fit' % offered_bad)
+        if bytes(s7.zone) != z_before:
+            bad.append('the source zone bytes changed during a refused resize')
+        b.add('Z7', 'FAIL' if bad else 'PASS',
+              '; '.join(bad[:2]) if bad else
+              '%d texture(s) can be enlarged inside their own padding, %d cannot; every '
+              'over-size request refused and the zone bytes never changed' % (fit, nofit))
+        b.add('Z7r', 'PASS' if nofit else 'SKIP',
+              ('%d texture(s) genuinely cannot fit a 2x copy, so the refusal arm was exercised'
+               % nofit) if nofit else 'every texture had room, so nothing tested the refusal')
+
     return b.report()
 
 

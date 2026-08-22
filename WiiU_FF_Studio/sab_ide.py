@@ -244,6 +244,7 @@ class SabIDE(Workspace):
             return
         self.path = path
         self.title("%s -- %s" % (APP_TITLE, os.path.basename(path)))
+        self.set_document(path)          # keeps doc.path honest, not just the tab caption
         # Remember where this came from: a bank sitting beside its own zones then resolves with
         # no configuration at all, which is the common case for an extracted or project folder.
         try:

@@ -468,10 +468,25 @@ def build_from_arm(spec, cells, pc_zone_len=None, verbose=False):
             'offset means NOTHING in another zone -- REFUSING. (This is the guard '
             'that stops a zm_nuked arm file being applied to the zm_transit bus.)'
             % (spec.get('pc_zone_len'), pc_zone_len))
+    # ⛔ b106: require_old_words is RETIRED ON THIS PATH, and the obituary matters.
+    # It existed because the b93 mint ran as a POST-BAKE PATCH against a zone it could not
+    # otherwise identify: the exact relocated word was the only evidence that "this is the
+    # bake the pin was proven against". Emitted at BAKE TIME there is nothing to prove —
+    # we ARE the bake, and the words in `cells` are ones this same run just relocated.
+    # Keeping it would refuse every future build for the crime of not being b92: it is a
+    # pin on a value that legitimately changes whenever the emitter's input changes, and it
+    # already refused b105 (0xA3962243 vs the calibrated 0xA394FE43).
+    # ⚠ WHAT REPLACES IT IS NOT NOTHING — it is a POST-BAKE CONTENT GATE (produce_container,
+    # zm_nuked path): the minted target must resolve to a NUL-bounded EMPTY STRING, the shape
+    # genuine's VehicleDef column points at (zm_transit, x74, measured). That gate scores what
+    # the value MEANS instead of which build produced it, so a target that drifts onto garbage
+    # refuses while a target that merely moves does not.
+    # ⛔ `spec['require_old_words']` is deliberately left in the arm file: it is still the right
+    # guard for the post-bake patch path, which may be re-run for forensics.
     return build(spec['rows'], spec['oat'], cells, spec['target_rt'],
                  PinnedAnchor(spec['pin']), require_mod4=0,
                  expect=spec['expect'],
-                 require_old_words=spec['require_old_words'], verbose=verbose)
+                 require_old_words=None, verbose=verbose)
 
 
 def verify_pin(ev, pin=PIN_B93, require_mod4=0):

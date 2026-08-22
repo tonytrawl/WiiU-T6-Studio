@@ -19,6 +19,7 @@ item id. Losing that reference does not error -- the tile just renders blank, wh
 import queue
 import threading
 import tkinter as tk
+from tkinter import ttk
 
 from . import theme
 
@@ -32,6 +33,14 @@ LOADING_TEXT = 'loading...'
 NO_PREVIEW_TEXT = 'no preview'
 PAD = 10
 LABEL_H = 16
+
+#: rows of tiles built beyond the viewport, so a scroll does not reveal empty space before the
+#: next sync lands. Two is enough at any wheel speed measured; more just costs widgets.
+ROW_SLACK = 2
+
+#: decoded thumbnails kept after their tile is destroyed, so scrolling back is instant. Bounded
+#: because an unbounded cache on a 20,000-entry pak is just a slow memory leak.
+PHOTO_CACHE = 600
 
 
 class Gallery(tk.Frame):
@@ -53,7 +62,11 @@ class Gallery(tk.Frame):
         self._px = thumb_px
 
         self.canvas = tk.Canvas(self, bg=theme.EDIT, highlightthickness=0, bd=0)
-        self.sb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        # ⚠ ttk, not tk. A classic tk.Scrollbar ignores the ttk theme entirely, so this one
+        # rendered in the OS default light chrome inside a dark window -- the odd-looking
+        # scrollbar in the gallery. Every other list in the app already uses ttk.
+        # the scrollbar goes through _yview so a DRAG re-materialises tiles too, not just a wheel
+        self.sb = ttk.Scrollbar(self, orient="vertical", command=self._yview)
         self.canvas.configure(yscrollcommand=self.sb.set)
         self.sb.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
@@ -63,8 +76,11 @@ class Gallery(tk.Frame):
         # made a part-filled row float in the middle of the pane instead of reading as a row.
         self.inner.grid_anchor('nw')
         self._win = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
-        self.inner.bind("<Configure>",
-                        lambda _e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        # ⛔ NO bbox("all")-DRIVEN SCROLLREGION. Only a slice of the tiles exists at any moment
+        # now, so the bounding box of what happens to be built describes the WINDOW, not the
+        # collection -- the scrollbar thumb would size itself to a few visible rows and jump
+        # about as tiles came and went. `_layout` sets the region from the real row count.
+        self.inner.pack_propagate(False)
         self.canvas.bind("<Configure>", self._on_resize)
         for w in (self.canvas, self.inner):
             w.bind("<MouseWheel>", self._on_wheel)
@@ -75,6 +91,7 @@ class Gallery(tk.Frame):
         self._pending = set()
         self._sel = None
         self._cols = 0
+        self._win_range = None       # (lo, hi, cols) last materialised, so a re-sync is cheap
         self._q = queue.Queue()      # worker -> UI  (results only)
         self._todo = []              # UI -> worker (work only), guarded by _lock
         self._lock = threading.Lock()
@@ -96,6 +113,12 @@ class Gallery(tk.Frame):
         self._tiles.clear()
         self._photos.clear()
         self._sel = None
+        self._win_range = None          # a new item set invalidates the cached window
+        # Force the drain's self-heal to run a real layout for THIS item set. `_layout` returns
+        # early while the pane is still 1px wide (the gallery is built behind the list view), and
+        # if the new pak happened to want the same column count as the old one nothing would
+        # re-size the scroll region for it.
+        self._cols = 0
         self._layout()
         self._stop = False
         self.after_idle(self._queue_visible)
@@ -147,29 +170,110 @@ class Gallery(tk.Frame):
         cw, _ch = self._cell()
         if max(1, e.width // cw) != self._cols:
             self._layout(e.width)                 # pass the NEW width -- see _layout
+        else:
+            self._sync_tiles()
+        self.after_idle(self._queue_visible)
+
+    def _yview(self, *a):
+        """Scrollbar hook: scroll, then re-materialise. A drag must build tiles like a wheel."""
+        self.canvas.yview(*a)
+        self._sync_tiles()
         self.after_idle(self._queue_visible)
 
     def _layout(self, width=None):
-        """Re-grid the tiles. `width` is the authoritative pane width when one is supplied.
+        """Size the scroll area from the ITEM COUNT, then materialise only what is on screen.
+
+        ⛔ THIS USED TO BUILD A WIDGET FOR EVERY ITEM. Four per tile -- frame, box, image label,
+        caption -- gridded up front. On a large pak that is tens of thousands of Tk widgets
+        created before the first one is visible, which is the slowdown; every later sweep then
+        walked all of them asking winfo_y(), which is the scroll stutter; and Tk's grid runs out
+        of rows, which is the crash:
+            ipak_ide._refill -> gallery.set_items -> _layout -> grid_configure
+            _tkinter.TclError: row out of bounds
+        The module docstring always claimed tiles were built lazily. Only the THUMBNAILS were.
+
+        Tiles are now `place`d at absolute pixels rather than gridded, which has no row ceiling,
+        and only a window around the viewport exists at any moment.
 
         ⚠ DURING A <Configure> CALLBACK, winfo_width() STILL REPORTS THE OLD SIZE. Only e.width
-        carries the new one. Reading winfo_width() here meant the resize handler computed 6
-        columns, called this, and this immediately overwrote it with the stale 1 -- so the grid
-        stayed a single centred column no matter how wide the window got. Measured twice before
-        the cause was visible in a screenshot rather than in the numbers.
-
-        set_items() legitimately has no width (the gallery is still unpacked while the list view
-        shows), so it passes None and gets one column until the first real <Configure>.
+        carries the new one, so a caller inside Configure must pass it.
         """
-        cw, _ch = self._cell()
+        cw, ch = self._cell()
         w = width if width is not None else self.canvas.winfo_width()
+        if w <= 1:
+            # not mapped yet (the gallery is built while the list view is showing). Laying out
+            # against a 1px pane would compute one column and, before virtualisation, one grid
+            # row per item. The first real <Configure> does the work.
+            return
         self._cols = max(1, w // cw)
-        for i, it in enumerate(self._items):
+        n = len(self._items)
+        rows = (n + self._cols - 1) // self._cols
+        h = max(1, rows * ch)
+        self.inner.configure(width=self._cols * cw, height=h)
+        self.canvas.configure(scrollregion=(0, 0, self._cols * cw, h))
+        self._sync_tiles()
+
+    def _window_indices(self):
+        """Item indices worth having a widget for: the visible rows plus a row of slack."""
+        if not self._items or not self._cols:
+            return 0, 0
+        _cw, ch = self._cell()
+        try:
+            top = self.canvas.canvasy(0)
+            vis = self.canvas.winfo_height()
+        except tk.TclError:
+            return 0, 0
+        if vis <= 1:
+            # ⚠ SAME TRAP AS THE WIDTH. The gallery is laid out while it is still UNMAPPED --
+            # ipak_ide calls set_items() and only then switches the view -- so the canvas reports
+            # height 1 and this would compute a one-row window and stop. The parent frame usually
+            # knows better; if nothing does, assume a screenful rather than a sliver.
+            try:
+                vis = max(self.winfo_height(), self.winfo_reqheight())
+            except tk.TclError:
+                vis = 1
+            if vis <= 1:
+                vis = 600
+        first_row = max(0, int(top // ch) - ROW_SLACK)
+        last_row = int((top + max(1, vis)) // ch) + ROW_SLACK
+        return first_row * self._cols, min(len(self._items), (last_row + 1) * self._cols)
+
+    def _sync_tiles(self, force=False):
+        """Create the tiles in the viewport window and destroy the ones that have left it.
+
+        Called on every drain tick, so it must cost nothing when the window has not moved.
+        """
+        if not self._cols:
+            return
+        lo, hi = self._window_indices()
+        if not force and (lo, hi, self._cols) == self._win_range:
+            return
+        self._win_range = (lo, hi, self._cols)
+        cw, ch = self._cell()
+        keep = set()
+        for i in range(lo, hi):
+            it = self._items[i]
             k = self._key(it)
-            if k not in self._tiles:
-                self._tiles[k] = self._make_tile(it, k)
-            f, _img, _cap = self._tiles[k]
-            f.grid(row=i // self._cols, column=i % self._cols, padx=PAD // 2, pady=PAD // 2)
+            keep.add(k)
+            t = self._tiles.get(k)
+            if t is None:
+                t = self._tiles[k] = self._make_tile(it, k)
+                ph = self._photos.get(k)
+                if ph is not None:                 # already decoded: show it straight away
+                    t[1].configure(image=ph, text='')
+                if k == self._sel:
+                    t[0].configure(highlightbackground=theme.ACCENT,
+                                   highlightcolor=theme.ACCENT)
+                    t[2].configure(fg=theme.TEXT)
+            t[0].place(x=(i % self._cols) * cw + PAD // 2,
+                       y=(i // self._cols) * ch + PAD // 2)
+        for k in [k for k in self._tiles if k not in keep]:
+            f, _i, _c = self._tiles.pop(k)
+            f.destroy()
+        # Thumbnails outlive their tiles so scrolling back is instant, but not without bound.
+        if len(self._photos) > PHOTO_CACHE:
+            for k in [k for k in self._photos if k not in keep][:len(self._photos) - PHOTO_CACHE]:
+                self._photos.pop(k, None)
 
     def _make_tile(self, item, k):
         f = tk.Frame(self.inner, bg=theme.EDIT, highlightthickness=2,
@@ -219,16 +323,27 @@ class Gallery(tk.Frame):
         self._sel = k
 
     def _scroll_into_view(self, frame):
+        """Scroll to an item by INDEX, not by asking a widget where it is.
+
+        A tile outside the window has no widget at all now, so `winfo_y()` on it is either a
+        stale number or an error -- and `select()` is exactly the path that jumps to something
+        off screen.
+        """
         try:
-            self.canvas.update_idletasks()
-            y = frame.winfo_y()
-            h = max(1, self.inner.winfo_height())
-            self.canvas.yview_moveto(max(0.0, (y - 40) / float(h)))
+            _cw, ch = self._cell()
+            idx = next((i for i, it in enumerate(self._items)
+                        if self._key(it) == self._sel), None)
+            if idx is None or not self._cols:
+                return
+            total = max(1, ((len(self._items) + self._cols - 1) // self._cols) * ch)
+            self.canvas.yview_moveto(max(0.0, ((idx // self._cols) * ch - 40) / float(total)))
+            self._sync_tiles()
         except tk.TclError:
             pass
 
     def _on_wheel(self, e):
         self.canvas.yview_scroll(-1 * (e.delta // 120), "units")
+        self._sync_tiles()
         self.after_idle(self._queue_visible)
         return "break"
 
@@ -242,17 +357,17 @@ class Gallery(tk.Frame):
             bot = top + self.canvas.winfo_height()
         except tk.TclError:
             return
+        # ⚠ ONLY THE WINDOW. This used to walk EVERY item and ask Tk for winfo_y() on each --
+        # one round-trip per entry, on every wheel notch. The window is already the set of
+        # items with a widget, so the visibility test is arithmetic instead.
+        lo, hi = self._window_indices()
         want = []
-        for it in self._items:
+        for i in range(lo, hi):
+            it = self._items[i]
             k = self._key(it)
             if k in self._photos or k in self._pending:
                 continue
-            t = self._tiles.get(k)
-            if not t:
-                continue
-            y = t[0].winfo_y()
-            _cw, ch = self._cell()
-            if y + ch >= top - ch and y <= bot + ch:      # one row of slack either side
+            if k in self._tiles:
                 want.append(it)
                 # ⚠ HARD CAP PER SWEEP. Before the canvas has a real size, every tile reports as
                 # visible -- measured: a 187-entry pak queued all 187 at once. On a 4,000-entry
@@ -323,6 +438,14 @@ class Gallery(tk.Frame):
                 if max(1, w // cw) != self._cols:
                     self._layout(w)
                     self.after_idle(self._queue_visible)
+                else:
+                    # ⛔ AND RE-SYNC EVERY TICK, not only when the column count moves. The
+                    # window depends on the canvas HEIGHT and the scroll offset, and both can
+                    # settle after the one layout that happened to run -- measured on
+                    # lowmip_split1 (11,588 entries): the first sync ran against a stale height,
+                    # built a single row, and nothing ever recomputed it. Cheap: this walks the
+                    # window, not the collection, and does nothing when the window is unchanged.
+                    self._sync_tiles()
         except tk.TclError:
             pass
         if self.winfo_exists():

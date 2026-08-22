@@ -48,6 +48,14 @@ CO_MAT_SIZE = 104
 # (Track B substitute) or None. When set, convert_material EMITS the blob in
 # place of the PC DXBC techset (console loadability requirement).
 INLINE_TECHSET_HOOK = None
+
+# ⭐ b111 FORCE-INLINE ARM (assemble-installed `b111_authored_techsets.B111Arm`, or None).
+# Consumes bake 1's enumeration and serves an AUTHORED techset body keyed by MATERIAL NAME.
+# ⛔ Keyed by material, not by techset name, deliberately: INLINE_TECHSET_HOOK above keys on
+# the PC techset name AND caches by it, so two materials sharing one such name would receive
+# the same replacement. Here the material's own name is in scope, so containment is exact by
+# construction instead of by a measurement that happens to hold today.
+B111_ARM = None
 PC_SB_SIZE = 20          # GfxStateBits on PC
 CO_SB_SIZE = 8           # GfxStateBits on console (loadBits[2] only)
 TEXDEF_SIZE = 16
@@ -700,8 +708,26 @@ def convert_material(pc, off, reloc=_default_reloc, marks=None, out_base=0):
             if blob is None:
                 raise RuntimeError('inline techset: no substitute blob @0x%x'
                                    % src)
+            # b111 REPLACE class: this material is ALREADY inline, and bake 1 measured its
+            # inline techset as carrying a demand it cannot satisfy. Author a corrected body
+            # from the one it would otherwise have received.
+            if B111_ARM is not None and mat_name:
+                _auth = B111_ARM.blob_for_replace(mat_name, blob)
+                if _auth is not None:
+                    blob = _auth
             out += blob
         src = nxt
+    elif B111_ARM is not None and mat_name:
+        # b111 CREATE class: an ALIAS-form material that bake 1 measured as unsatisfiable
+        # with NO satisfiable candidate anywhere in the zone. Give it an inline techset of
+        # its own — authored from the very techset it was bound to, minus the demands it
+        # cannot meet. ⛔ INSERT form (design Amendment 1: 23/23 long-named real inline
+        # materials across five zones are INSERT; ours are world content, so match the form
+        # our own pipeline and retail already use for this class).
+        _auth = B111_ARM.blob_for_create(mat_name)
+        if _auth is not None:
+            struct.pack_into('>I', out, 80, INSERT)
+            out += _auth
 
     # textureTable[textureCount] : MaterialTextureDef 16 B (identical size)
     if tt in PTRS:

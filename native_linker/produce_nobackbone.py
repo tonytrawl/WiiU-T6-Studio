@@ -102,6 +102,9 @@ import fx_convert as FXC
 import smalls_convert as SC
 import zmconv_a as ZA
 import zmconv_b as ZCB
+# b103: the aliased-techset body locator (rule DX -- by NAME, never by inverting
+# a headerPtr through a PC omap that is 93.5%% holes). Replaces pc_inv at :1364.
+import aliased_techset_locate as _ATL
 
 B5_BASE = 64
 BLOCK5_LO, BLOCK5_HI = 0xA0000001, 0xBFFFFFFF
@@ -121,13 +124,16 @@ TS_TRACE = False   # diag: record techset-interior tagged fixups on Omap.ts_trac
 VSHADER_TAIL_DELTA = {'mp_skate': 0xFF4200}
 
 
-class FatalBakeError(Exception):
-    """(EC) a bake failure that must NEVER be downgraded to 'asset skipped'.
-
-    A swallowed post-conversion fixup ships the UNFIXED bytes; emit_one's outer
-    handler would instead drop the whole asset body and record a one-line
-    `why='EXC:...'`. Both are silent-ish failures for a fixup whose absence has
-    no other symptom. emit_one re-raises this class past both."""
+# (EC) THE class every bake refusal inherits from. MOVED to bake_errors.py on
+# 2026-08-18 so that CONVERTERS -- which this module imports, and which therefore
+# cannot import from it -- can subclass it instead of raising a bare RuntimeError
+# that the `except Exception` handlers below silently downgrade to a dropped asset.
+# Two lanes shipped exactly that defect independently on the same morning
+# (SndBankConversionRefusal at :1712, the aliased-techset refusal at :1206).
+# ⭐ A REFUSAL IS ONLY A REFUSAL IF EVERY HANDLER BETWEEN IT AND THE DRIVER LETS IT
+# OUT. The name stays bound here, so every `raise FatalBakeError` / `except
+# FatalBakeError` in this file and every importer of it is unchanged.
+from bake_errors import FatalBakeError                                # noqa: F401
 
 # FIX B pipeline policy (glass/skybox handoff 2026-07-18, boot-53 class): emit
 # top-level asset NAME fields INLINE (FOLLOW + string) whenever the PC source
@@ -245,6 +251,8 @@ class Omap:
         self._prior = None         # pass-1 (fine, regions) (two-pass: forward refs)
         self.rtmap = None          # loader_sim.RuntimeMap: our stream b5 -> runtime addr
         self.pc_inv = None         # loader_sim.InverseMap: PC runtime b5 -> PC stream b5
+        self.alias_bodied = set()  # b96: pc indices whose ALIASED row now owns a real body
+        self.alias_ts_word = {}    # b97: PC headerPtr word -> PC asset idx of an aliased techset
         self.pc_arr = None         # (pc_assets_off_b5, count): PC XAsset array range
         self.our_arr = 0           # our XAsset array runtime base (container layout)
         self.pc_spans = None       # [(pc_b5_start, pc_b5_end, root)] for unresolved diagnostics
@@ -628,15 +636,53 @@ class Omap:
             self.stats['other'] += 1
             return v                       # non-block-5 alias classes (block-bump handled elsewhere)
         b5 = (v - 1) & 0x1FFFFFFF
+
+        # ⭐ b97: A POINTER TO AN ALIASED TECHSET'S INLINE BODY BECOMES THAT ASSET'S SLOT HANDLE.
+        # 10 techsets have their body written inline inside another PC asset (see
+        # aliased_asset_names.py). b96 gave those rows real console bodies and FOLLOW
+        # registrations -- but the 17 MATERIALS that use them alias the PC INLINE BODY, not the
+        # array slot, so they still fell through to the coarse cascade and still landed in
+        # payload (boot 96: the zone loaded, the 17 still read 0x85298527 / "nimt").
+        # The mapping is EXACT and needs no offset arithmetic: a material's PC techniqueSet cell
+        # holds the SAME WORD as that techset's PC asset-array headerPtr, so a word-equality
+        # test identifies it with no interpolation anywhere.
+        # Emitting the slot handle puts these materials on the identical form the 936 healthy
+        # materials already use -- and the slot is now valid, which is what b95 lacked.
+        if self.alias_ts_word:          # empty when B96_ALIASED_TECHSET=0
+            _ti = self.alias_ts_word.get(v)
+            if _ti is not None and self.our_arr:
+                idx = self.idx_remap(_ti)
+                self.stats['alias-ts-slot'] = self.stats.get('alias-ts-slot', 0) + 1
+                return 0xA0000000 + (self.our_arr + idx * 8 + 4) + 1
+
         if self.pc_arr is not None:
             # asset-HANDLE references alias the XAsset array entry's header-ptr
             # slot (arr + idx*8 + 4) — temp-rooted assets have no persistent
             # body address, so the loader's alias lookup keys on the slot.
-            # PC aliases encode PC-RUNTIME addresses: the array allocates
-            # 8-ALIGNED, so the slot base is align8(arr) (raid is phase 0 so
-            # the shift is invisible there; mp_skate is not).
+            # PC aliases encode PC-RUNTIME addresses. ⛔⛔ THE BASE IS align4,
+            # NOT align8 — MIGRATED 2026-08-17 by PM ruling after Track-F's
+            # adjudication.
+            #
+            # ⭐ WHY THIS COMMENT USED TO SAY align8, AND WHY THAT WAS INDEFENSIBLE:
+            # TWO PC-side a0 rules shipped simultaneously. `reloc_asset_entry`
+            # (:381) migrated to align4 on 2026-08-16 on the ET7 path; THIS site
+            # — the generic handle-alias path — kept align8 and was never
+            # revisited. They are opposed on any phase-differing map (mirage
+            # differs by 3, downhill by 4) and identical on all five census maps,
+            # which is exactly why the disagreement survived: the calibration
+            # corpus could not see it. Two sites deriving the same quantity by
+            # different rules is not a trade-off, it is a defect.
+            # ⇒ The evidence that moved :381 applies here verbatim.
+            #
+            # ⚠ PHASE, MEASURED (not argued): zm_nuked assets_off 0x6A56 -> b5
+            # 27158, align8 == align4 == 27160 — PHASE 0, so this migration is a
+            # strict NO-OP for nuked and cannot regress it. raid is likewise
+            # phase 0. `mp_skate` is the off-phase map and is where the change
+            # has an effect.
+            # ⛔ Do NOT edit reloc_asset_entry:381 — it is frozen and et7_census
+            # scores it as written.
             a0, n = self.pc_arr
-            a0 = (a0 + 7) & ~7
+            a0 = (a0 + 3) & ~3
             if a0 <= b5 < a0 + n * 8 and (b5 - a0) % 8 == 4:
                 idx = self.idx_remap((b5 - a0) // 8)
                 self.stats['slot'] = self.stats.get('slot', 0) + 1
@@ -935,6 +981,33 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
     converter emits None and is COUNTED — the loop names the remaining gaps."""
     import struct_layout as SL
     PC = open(pc_path, 'rb').read()
+
+    # ---- SNDBANK PLATFORM BANK PATHS -- REFUTED ATTEMPT, RECORDED --------
+    # ⛔⛔ DO NOT re-add a whole-buffer `.pc.snd` -> `.wiiu.snd` replace here.
+    # TRIED AND REFUTED BY MEASUREMENT 2026-08-17.
+    #
+    # `assemble_loadzone.assemble()` does exactly that for LOAD zones, pre-parse,
+    # with the note "the walker re-derives spans, so the +2 shift is safe". That
+    # reasoning DOES NOT TRANSFER to a map zone:
+    #   '.pc.snd' -> '.wiiu.snd' grows each string by 2 B; mirage's PC zone holds
+    #   691 of them, +1,382 B, ALL INSIDE the 48.9 MB SndBank body. The body's own
+    #   internal offsets are not rewritten, so the walk desynchronises after it.
+    #   MEASURED: (GY) went from 0 unaccounted to 14 assets emitting NO BODY while
+    #   their XAsset row still says FOLLOW -- RawFile 947, XAnimParts 935-940,
+    #   FootstepTableDef 941-946, GfxImage 949: every asset AFTER SndBank (934).
+    #   That is a loader desync, i.e. strictly worse than the defect it fixed.
+    #
+    # ⭐ A load zone holds a handful of assets and its SndBank is small; a map
+    # zone's SndBank is the largest body in the file and everything is downstream
+    # of it. THE SAME TRANSFORM IS SAFE IN ONE AND CORRUPTING IN THE OTHER --
+    # "it already works over there" is not evidence about here.
+    #
+    # THE REAL FIX (owed, not done): convert the SndBank BODY -- rewrite the bank
+    # path strings AND the body's own length/offset fields together, or emit a
+    # size-neutral console path. That is a converter stage, not a string replace.
+    # Until it lands, `platform_string_gate` REFUSES the artefact post-convert, so
+    # the defect cannot ship silently the way it did on mirage boot 1
+    # (0xC0000409 fastfail opening a bank name built from PC platform strings).
     bodies, brk = walk_pc_bodies(PC)
     # map name from pc_path — derived HERE because the rule-(D) install below
     # needs it to locate this map's OAT dump. ⛔ Was an inline
@@ -1006,7 +1079,28 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
 
     # ---- techset substitution lookup (Track B): asset start offset -> console blob bytes ----
     # Manifest (pc_name -> console corpus name) from the per-zone JSON if present, else translate().
+    # ⭐ BISECT SWITCH (PM-ordered, 2026-08-18). The b96/b97/b99 aliased-techset work is
+    # unconditional in the normal path; set B96_ALIASED_TECHSET=0 to take the pre-b96 behaviour
+    # so `convert_map`'s reproduction arm can answer ONE question: does today's tree still
+    # reproduce b91raw (4380762f) WITHOUT my emission path? If it does, the 588 illegal
+    # weapon-column cells are mine; if it does not, they came from a landing since 08-17.
+    # PM ruling 2026-08-18: DEFAULT OFF FOR EVERY ROUTE EXCEPT zm_nuked. The emission is
+    # currently KNOWN-HARMFUL to other maps -- the runtime map advances in 4096-B PAGES
+    # while the ten emitted bodies have arbitrary sizes, so a pointer minted ACROSS an
+    # insertion is off by the rounding residue (up to 4,095 B) into a neighbouring object.
+    # It silently added a 220th techset body to mirage's bake and broke that lane's
+    # one-variable discipline for its boot 2; EVERY GATE PASSED on the contaminated
+    # artefact and only an asset-by-asset span diff caught it. Env var forces either way.
+    _b96_env = os.environ.get('B96_ALIASED_TECHSET')
+    _B96_ON = (_b96_env != '0') if _b96_env is not None else (_map_name == 'zm_nuked')
     ts_by_off = {}
+    alias_bodies = {}        # b96: pc_index -> console blob for ALIASED techset rows
+    alias_ts_word = {}       # b97: PC headerPtr word -> PC asset idx (attached to omap below)
+    alias_pc_span = {}       # b99: pc asset idx -> headerPtr word (PC span resolved below)
+    # b103: pc asset idx -> the OAT ordinal name, for the NAME-anchored body
+    # locator. Declared here, not inside `if _al:`, so emit_pass's closure cannot
+    # close over a name that exists only on some paths.
+    _alias_names = {}
     ts_gap = None
     try:
         import json
@@ -1059,6 +1153,46 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
             if not os.path.isabs(cpath):
                 cpath = os.path.join(TT.ROOT, cpath)
             ts_by_off[_s] = open(cpath, 'rb').read()
+
+        # ⭐ b96: THE ALIASED (BODYLESS) TECHSET ROWS -- the class the loop above cannot see.
+        # They have no span, so no `_s` key and no `_pc_name`; their name comes from the OAT
+        # name table (an aliased asset carries NO name in the zone at all). Emitted in the
+        # asset's own place by the emission loop, and written FOLLOW by the container author.
+        import aliased_asset_names as AAN
+        _al = AAN.aliased_bodyless(bodies) if _B96_ON else []
+        if _al:
+            _names = AAN.names_by_ordinal(_map_name)      # RAISES if absent -- never silent
+            for _i, _hp in _al:
+                _alias_names[_i] = _names.get(_i)   # b103: AS RECORDED (a leading
+                #  comma is part of the stored string; the locator needs the exact
+                #  key, while the corpus match below wants it stripped)
+                _nm = (_names.get(_i) or '').lstrip(',')
+                _cn = _nm if _nm in corpus else None
+                if _cn is None:
+                    _fb = TT.struct_fallback(_nm, _sidx_off, set(corpus)) if _nm else None
+                    _cn = _fb[0] if _fb else None
+                if _cn is None:
+                    raise FatalBakeError(
+                        'aliased %s row %d (%r, hp 0x%08X) has NO console blob. Emitting '
+                        'nothing here is what produced the b95 payload-landing registration, '
+                        'so this REFUSES instead of continuing.'
+                        % ('TECHNIQUE_SET', _i, _nm or '<unnamed>', _hp))
+                _cp = corpus[_cn]['path']
+                if not os.path.isabs(_cp):
+                    _cp = os.path.join(TT.ROOT, _cp)
+                alias_bodies[_i] = open(_cp, 'rb').read()
+                alias_ts_word[_hp] = _i           # b97: the word the 17 materials also hold
+                # ⭐ b99: RECORD THE PC SPAN OF THE INLINE BODY. b96 emitted these console bodies
+                # and advanced the cursor with NO omap region for them -- 427,705 B of console
+                # stream that no PC offset maps onto. Measured consequence: the weapon column
+                # went from 0 illegal cells (b94/b95) to 588 (b96/b97), with 596 cells actively
+                # RE-MINTED, because reloc's coarse cascade interpolates across a console gap
+                # that has no PC counterpart. Registering the real PC span closes the gap.
+                alias_pc_span[_i] = _hp           # PC span resolved in the emit loop (pc_inv)
+            if verbose:
+                print('  b96: %d aliased techset rows get a real body (FOLLOW registration): %s'
+                      % (len(alias_bodies),
+                         ', '.join('%d' % k for k in sorted(alias_bodies))))
         # INLINE-techset blob hook: materials with a FOLLOW/INSERT techniqueSet
         # (GfxWorld materialMemory/sunflare/tail, zm attachment materials) get
         # the Track B substitute blob EMITTED IN PLACE — console loadability
@@ -1090,6 +1224,61 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
             _ts_cache[nm] = blob
             return blob
         MC.INLINE_TECHSET_HOOK = _inline_ts_hook
+
+        # ⭐⭐ b111 FORCE-INLINE ARM — installed here because the CORPUS is in scope here.
+        # Two-phase by ruling: bake 1's gate REFUSES and writes the enumeration; this arm
+        # consumes that file MACHINE-TO-MACHINE. The predicate is not recomputed and not
+        # re-implemented — it was computed by the gate that embodies it, one execution
+        # earlier, in the frame that actually binds.
+        # ⛔ ABSENT ENUMERATION = ARM OFF, SILENTLY AND CORRECTLY. That is the normal state
+        # for every map and every first bake; a precondition-keyed arm whose precondition is
+        # not met must STAND DOWN, not raise. (An arm that fired on a map with no
+        # enumeration would be map-keyed in disguise.)
+        try:
+            import b111_authored_techsets as _B111
+            _b111_enum = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                      'b111_enumeration_%s.json' % (_map_name or 'unknown'))
+            if os.path.exists(_b111_enum):
+                def _b111_corpus(ts_name):
+                    ent = corpus.get(ts_name) if ts_name else None
+                    if not ent:
+                        return None
+                    _p = ent['path']
+                    if not os.path.isabs(_p):
+                        _p = os.path.join(TT.ROOT, _p)
+                    return open(_p, 'rb').read()
+                MC.B111_ARM = _B111.B111Arm(_b111_enum, _b111_corpus)
+                print('  b111 arm ARMED from %s: %d stuck material(s) targeted'
+                      % (os.path.basename(_b111_enum), len(MC.B111_ARM.targets)))
+            else:
+                MC.B111_ARM = None
+                print('  b111 arm: STAND DOWN — no enumeration for %r (this is the normal '
+                      'state; the arm only ever runs on a bake that FOLLOWS a refusing one)'
+                      % _map_name)
+        except Exception as _b111_ex:                             # noqa: BLE001
+            # ⛔⛔ RAISED AS FatalBakeError DELIBERATELY, AND THE REASON IS TWELVE LINES
+            # BELOW THIS ONE. The enclosing `except Exception as ex: ts_gap = ...` swallows
+            # everything else into a NOTE IN A TABLE — that is the exact defect this file
+            # already documents against itself ("MY OWN REFUSAL DID NOT REFUSE"). Only
+            # FatalBakeError is re-raised by the handler, so only FatalBakeError actually
+            # refuses. A b111 arm that failed to install while an enumeration EXISTS would
+            # otherwise emit the unrepaired zone the enumeration was written to fix, and the
+            # bake would look like a success.
+            # ⇒ a refusal is only a refusal if every handler between it and the driver lets
+            #   it out — checked here rather than assumed.
+            raise FatalBakeError('b111 arm failed to install (%s: %s) — an enumeration '
+                                 'exists, so proceeding would ship the unrepaired zone'
+                                 % (type(_b111_ex).__name__, str(_b111_ex)[:120]))
+    except FatalBakeError:
+        # ⛔⛔ MY OWN REFUSAL DID NOT REFUSE. This `except Exception` encloses the whole
+        # techset block INCLUDING the aliased-techset arm, so the FatalBakeError raised above
+        # for "aliased techset row has NO console blob" was being downgraded to
+        # `ts_gap = 'techset lookup failed: ...'` -- a note in a table, and the bake continued
+        # to emit exactly the zone that refusal exists to prevent. Identical in shape to the
+        # defect the mirage lane found in their SndBankConversionRefusal the same morning, in
+        # this same file: a refusal is only a refusal if every handler between it and the
+        # driver lets it out. The file's own docstring at :124 already said so.
+        raise
     except Exception as ex:
         ts_gap = 'techset lookup failed: %s' % str(ex)[:80]
 
@@ -1206,6 +1395,71 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
                 out_assets.append((i, nm, root, None, 'dropped'))
                 continue
             if s is None or e is None:
+                # ⭐ b96: AN ALIASED TECHSET ROW GETS A REAL BODY (was: silently skipped).
+                # 10 of zm_nuked's 219 technique sets have an ALIASED headerPtr (their body was
+                # written inline inside another PC asset), so walk_pc_bodies correctly gives
+                # them no span -- and nothing downstream handled that, so no console body was
+                # emitted and produce_container fell back to `omap.reloc(pc_hp)`, whose coarse
+                # cascade landed the registration in string/vertex payload (boot 94/95: the
+                # consumer read "nimt" and float payload as a techset pointer).
+                # The body is emitted HERE, in the asset's own place in the stream, so the row
+                # can be written FOLLOW. No new row, no idx_remap: the row already exists.
+                _ab = alias_bodies.get(i) if alias_bodies else None
+                if _ab is not None:
+                    # ⭐ b99: REGISTER THE PC->CONSOLE MAPPING FOR THIS BODY.
+                    # b96 emitted the bytes and advanced the cursor with NO omap region, leaving
+                    # 427,705 B of console stream that no PC offset maps onto. reloc's coarse
+                    # cascade then interpolated across that gap. MEASURED cost: weapon-column
+                    # illegal cells 0 (b94/b95) -> 588 (b96/b97), 596 of them actively re-minted,
+                    # against 0 of 47,109 in genuine retail. The PC body is real (it lives inline
+                    # inside another asset); registering its true span is the missing half.
+                    # ⛔⛔ b103 (2026-08-20, PM-ruled): THIS NO LONGER LOCATES THE BODY BY
+                    # INVERTING THE HEADERPTR. It used to be
+                    #     _pb5 = omap.pc_inv.stream((_hpw - 1) & 0x1FFFFFFF)
+                    # and that DID NOT WORK, on any row, since b99 shipped. All ten of
+                    # zm_nuked's aliased-techset bodies fall inside ONE 67.2 MB hole in the PC
+                    # omap, and InverseMap extends linearly across it (see its docstring: 93.5%
+                    # of the address space on this map is inside gaps >= 64KB). Measured
+                    # against ground truth, the inverted offsets were up to 47,992,536 B wrong:
+                    # the first word at every one of them was NOT A POINTER (0x44FECC88,
+                    # 0x06518109, 0xFFE19F52 ...) and parse_techset_pc turned pixel gradients
+                    # into a uniform 152 B "span". Four builds registered those as PC regions.
+                    # It only ever RAISED once -- b103's diagnostic bake, row 1661 -- because
+                    # that row's garbage happened to exceed the buffer. A wrong region is not
+                    # better than a missing one: b96's MISSING regions are the live candidate
+                    # for the 588 illegal weapon cells, and this was quietly feeding the same
+                    # cascade wrong answers instead of none.
+                    #
+                    # ⭐ RULE DX, which produce_nobackbone's own strid branch states three
+                    # screens above the code that ignored it: AN IDENTITY CARRIED FROM THE PC
+                    # SIDE BEATS ANY ARITHMETIC OVER A DRIFTED INVERSE. An aliased asset carries
+                    # no name in the zone, which is exactly why the OAT ordinal table exists --
+                    # so locate the body by its NAME. `aliased_techset_locate` verifies every
+                    # hit (first word FOLLOW/INSERT, a bounded forward parse, and the name
+                    # round-tripping out of the located body) and REFUSES rather than falling
+                    # back to the inverse. 10 of 10 on zm_nuked, spans 180 B to 336,670 B.
+                    _hpw = alias_pc_span.get(i)
+                    try:
+                        _pbody, _pend = _ATL.locate_one(PC, _alias_names.get(i))
+                        _plen = max(0, _pend - _pbody)
+                        if _plen:
+                            omap.add(_pbody - B5_BASE, _plen, co_cursor, False)
+                            omap.stats['alias-ts-body-region'] = omap.stats.get(
+                                'alias-ts-body-region', 0) + 1
+                    except Exception as _ex:
+                        raise FatalBakeError(
+                            'b103: cannot locate the inline PC body of aliased techset row %d '
+                            '(%r, hp 0x%08X) BY NAME: %s. Registering a body with no omap '
+                            'region broke the weapon column in b96, and registering a WRONG '
+                            'region is what b99 did for four builds -- refusing to do either.'
+                            % (i, _alias_names.get(i), _hpw or 0, _ex))
+                    emitted += _ab
+                    co_cursor += len(_ab)
+                    omap.alias_bodied.add(i)
+                    stat[root][0] += 1
+                    stat[root][1] += len(_ab)
+                    out_assets.append((i, nm, root, _ab, 'alias-bodied'))   # pos 3 = BODY BYTES (:1768 does len())
+                    continue
                 out_assets.append((i, nm, root, None, 'aliased/no-root'))
                 continue
             nreg = len(conv.regions)
@@ -1569,6 +1823,8 @@ def assemble_zone(pc_path, verbose=True, pc_policy=None, our_policy=None,
 
     # PASS 1: sizes/regions only (forward refs unresolved). PASS 2: full map.
     omap = Omap()
+    omap.alias_ts_word = alias_ts_word   # b97: attached HERE -- Omap is constructed after the
+                                         # ts_by_off block that fills the dict.
     omap.pc_inv = omap0_pc_inv
     omap.pc_arr = (rp.assets_off - B5_BASE, n_assets)
     omap.pc_assets = rp.assets             # et7/asset-entry class: type check

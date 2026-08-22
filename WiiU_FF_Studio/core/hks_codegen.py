@@ -121,6 +121,26 @@ class FuncState(object):
     def knum(self, x):
         return self.k(T_NUMBER, float(x))
 
+    def rk_const(self, i):
+        """A constant index about to be used as an RK operand.
+
+        ⛔ AN RK CONSTANT INDEX ONLY HAS 8 BITS. C is 9 bits and bit 8 IS the RK flag, so
+        `index | RK_BIT` is only reversible while index <= 255. At 256 the index's own bit 8
+        collides with the flag and the instruction silently reads a DIFFERENT constant --
+        index 300 decodes as constant 44, in a chunk that passes every structural check because
+        44 is a perfectly valid index.
+
+        The real fix is to spill the constant to a register with LOADK and use the register
+        form, which this codegen does not do yet. Until it does, refusing is the only honest
+        option: a wrong constant is a wrong script that looks correct.
+        """
+        if i > 0xFF:
+            raise HksCompileError(
+                'constant index %d cannot be used as an RK operand (limit 255): this function '
+                'has %d constants. The compiler does not yet spill to a register, so it refuses '
+                'rather than silently encode constant %d.' % (i, len(self.consts), i & 0xFF))
+        return i
+
     # -- emit -------------------------------------------------------------
     def emit(self, mnem, a=0, b=0, c=0):
         if mnem not in OP:
@@ -277,9 +297,9 @@ class Compiler(object):
         """
         fs = self.fs
         if e.k == 'str':
-            return fs.kstr(e.a) | RK_BIT
+            return fs.rk_const(fs.kstr(e.a)) | RK_BIT
         if e.k == 'num':
-            return fs.knum(_num(e.a)) | RK_BIT
+            return fs.rk_const(fs.knum(_num(e.a))) | RK_BIT
         if e.k == 'name':
             r = fs.local_reg(e.a)
             if r is not None:

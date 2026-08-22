@@ -50,6 +50,43 @@ MINT_NULLED = []               # (weapon_name, elem_index) for every NULL'd elem
 # weapon with no inline WeaponDef simply has no entry.
 _MINT_WD_KEY = '__weapondef__'
 
+# ---- b104: DECLARED-NULL worldModel arrays (WeaponDef +0x394) ----------------
+# Installed by `b104_worldmodel_null.install()`; a set of weapon names. While it
+# is None the branch in _convert_weapondef is UNREACHABLE and this module behaves
+# exactly as b103 did -- which is not an assertion, it is the b104 arm-1 control:
+# with the hook unset the bake reproduces b103 raw BYTE-EXACT (3856a119...).
+#
+# WHAT IT DOES. A weapon whose +0x394 holds a block-5 ALIAS that resolves into a
+# FOREIGN asset body is the boot-103 defect class: G_RegisterWeapon does
+#     lwz r10, 0x394(r30) ; lwz r3, 0(r10) ; cmpwi r3,0 ; beq <skip>
+# -- the array POINTER is never null-checked, but every ELEMENT access through it
+# is. (Disassembled from t6mp_cafef_rpl f350a7a2...; G_SpawnItem @0x022e2b3c has
+# the identical shape.) So the array must EXIST, and an all-NULL array is safe by
+# the engine's own guards: the weapon registers with no world model.
+#
+# ⛔ THIS IS A DECLARED ABSENCE, NOT A GUESS. Where the donor is underivable we
+# assert NOTHING rather than a plausible pointer -- the distinction the no-guessed
+# -values rule is actually about (law 74). The weapons in this set are INVISIBLE
+# in-world; that is a real, declared gameplay defect and it is written down in
+# BOOT_REQUEST_zm_nuked_b104.md, not hidden behind a green gate.
+# ⚠ The landing-class bar is satisfied here BY CONSTRUCTION -- an inline FOLLOW
+# array cannot land in a foreign asset because it does not point anywhere. The
+# bar being green at +0x394 is NECESSARY, NOT SUFFICIENT; the evidence this boots
+# is the disassembly above, never the bar.
+WORLDMODEL_NULL = None
+_CUR_VARIANT = None                    # PC offset of the variant being converted
+
+
+def _emit_null_worldmodel(s, wd_b, off):
+    """Patch the +0x394 head word to FOLLOW and emit an inline all-NULL
+    XModel*[16]. Consumes NO PC bytes (the PC source carries no inline array
+    here), so s.o is untouched by construction -- same discipline as _mint_cstr."""
+    struct.pack_into('>I', s.b, wd_b + off, FOLLOW)
+    for _ in range(16):
+        _mark_ptr(s)
+        s.b += b'\x00\x00\x00\x00'
+    MINT_STATS['b104-worldmodel-null'] += 1
+
 
 def _mint_cstr(s, text):
     s.b += text.encode('ascii') + b'\x00'
@@ -319,6 +356,8 @@ def convert_weapon(pc, off, reloc=lambda v: v, record_ptrs=False):
 
     Returns (body, pc_end); with record_ptrs also the list of body-relative
     pointer-word offsets (validator uses it to accept reloc-resolved diffs)."""
+    global _CUR_VARIANT
+    _CUR_VARIANT = off                 # b104: identity for WORLDMODEL_NULL (see below)
     s = Sw(pc, off, reloc)
     s.pspans = []
     s.tailspan = None
@@ -603,6 +642,14 @@ def _convert_weapondef(s, reloc):
         elif k == 'xmod':
             if v == FOLLOW:
                 _ptr_array_assets(s, 16, reloc, 'xmodel')
+            elif off == 916 and WORLDMODEL_NULL:
+                # b104: this weapon's worldModel alias resolves into a foreign
+                # asset body and no donor is derivable -> declare no model.
+                # Keyed on the weapon's IDENTITY, never on a map name.
+                _nm = (MINT.get(_CUR_VARIANT) or {}).get('name') \
+                    if MINT is not None else None
+                if _nm in WORLDMODEL_NULL:
+                    _emit_null_worldmodel(s, wd_b, off)
         elif k == 'asset':
             if v in PTRS:
                 _recurse(s, op[2], reloc)

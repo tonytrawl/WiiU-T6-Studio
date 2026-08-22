@@ -61,7 +61,7 @@ if /i "%~1"=="--nogates" (
 )
 
 echo [*] Running every gate battery before packaging...
-for %%B in (core.xmodel_selftest core.scripts_selftest core.gsc_asm_selftest core.ipak_selftest core.sab_selftest core.zone_media_selftest) do (
+for %%B in (core.xmodel_selftest core.scripts_selftest core.gsc_asm_selftest core.ipak_selftest core.sab_selftest core.zone_media_selftest core.hks_selftest) do (
     echo     - %%B
     python -m %%B >nul 2>&1
     if errorlevel 1 (
@@ -150,6 +150,9 @@ python -m PyInstaller ^
     --hidden-import core.gsc_assembler ^
     --hidden-import core.gsc_asm_selftest ^
     --hidden-import core.hks ^
+    --hidden-import core.hks_dis ^
+    --hidden-import core.hks_patch ^
+    --hidden-import core.hks_selftest ^
     --hidden-import core.hks_codegen ^
     --hidden-import core.lua_lang ^
     --hidden-import core.xmodel ^

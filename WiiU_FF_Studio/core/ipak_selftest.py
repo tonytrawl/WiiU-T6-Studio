@@ -444,6 +444,60 @@ def run():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
+    # ---- G11 / G11r the gallery must survive a pak far larger than Tk's grid can address ----
+    # Reported from the field as "ipaks crash when opening", with this in studio_errors.log:
+    #     ipak_ide._refill -> gallery.set_items -> _layout -> grid_configure
+    #     _tkinter.TclError: row out of bounds
+    # The gallery built four widgets per entry and gridded them, so a large pak ran Tk out of
+    # grid rows -- and long before that, out of patience.
+    try:
+        import tkinter as _tk
+        from . import gallery as _gal
+        _r = _tk.Tk()
+        # ⚠ NOT withdraw(). A withdrawn window reports 1x1, so `_layout` correctly defers and
+        # the gate would measure zero tiles and call it a failure -- the same trap W15 hit.
+        # Transparent-but-mapped gives real geometry without putting a window in the user's face.
+        _r.geometry('900x600+40+40')
+        try:
+            _r.attributes('-alpha', 0.0)
+        except _tk.TclError:
+            pass
+        g = _gal.Gallery(_r, key=lambda i: i, label=lambda i: 't%05d' % i,
+                         thumbnail=lambda i: None)
+        g.pack(fill='both', expand=True)
+        _r.update()
+        N = 40000
+        g.set_items(list(range(N)))
+        _r.update()
+        built = len(g._tiles)
+        for f in (0.0, 0.5, 1.0):
+            g.canvas.yview_moveto(f)
+            g._sync_tiles()
+            _r.update()
+        after = len(g._tiles)
+        lo, hi = g.canvas.yview()
+        ok = built <= 400 and after <= 400 and (hi - lo) < 0.05
+        b.add('G11', 'PASS' if ok else 'FAIL',
+              ('%d items: %d tile(s) built, %d after scrolling end to end, thumb %.4f of the '
+               'track' % (N, built, after, hi - lo)) if ok else
+              ('unbounded or mis-sized: %d/%d tiles, thumb %.4f' % (built, after, hi - lo)))
+
+        # The control: the same row count through the OLD eager path must still fail, or G11
+        # is not testing a real constraint.
+        raised = False
+        try:
+            for i in range(N):
+                _tk.Frame(g.inner).grid(row=i, column=0)
+        except _tk.TclError:
+            raised = True
+        b.add('G11r', 'PASS' if raised else 'FAIL',
+              ('gridding %d rows still raises TclError, so G11 measures a real limit' % N)
+              if raised else ('Tk accepted %d grid rows -- G11 proves nothing here' % N))
+        g.destroy()
+        _r.destroy()
+    except Exception as ex:
+        b.add('G11', 'FAIL', '%s: %s' % (type(ex).__name__, str(ex)[:110]))
+
     return b.report()
 
 

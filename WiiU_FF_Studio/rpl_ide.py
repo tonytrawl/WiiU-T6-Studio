@@ -465,6 +465,7 @@ automatic .stock backup.
         except Exception:
             pass
         self.title("%s -- %s" % (APP_TITLE, os.path.basename(path)))
+        self.set_document(path)          # keeps doc.path honest, not just the tab caption
         self.head.configure(text="%s   %d symbols   .text %s bytes"
                                  % (os.path.basename(path), len(self.rpl.syms),
                                     format(len(self.rpl.text), ',')))

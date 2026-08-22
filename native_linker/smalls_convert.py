@@ -10,6 +10,7 @@ strings/byte-arrays copied verbatim. Each convert_* returns (body_bytes, pc_end)
 """
 import struct
 import os
+import bake_errors as _bake_errors
 import material_convert as MC
 
 FOLLOW = 0xFFFFFFFF
@@ -147,6 +148,150 @@ SNDBANK_LOADEDASSETS_ORACLE = None  # (entryCount, dataSize) genuine console val
 # suppress the two inline strings (folded into the zeroed data buffer -> size-preserving).
 SNDBANK_HEAD_SANITIZE = None      # set([bank_name, ...]) or None
 
+# --- P1/P2: the PC SndAlias stride, and the console platform bank paths -------
+# * sizeof(SndAlias) is 96 on PC and 100 on Wii U (OAT ZoneCode
+# sndbank_t6_load_db.cpp:202 `LoadWithFill(96 * count)`; genuine console mp_raid
+# walks byte-exact at 100 and collapses at 96). `sndbank_probe.ALIAS` was serving
+# as BOTH, so every PC walk strode 4 B too far per alias and this emitter read
+# SndAlias records from a cursor drifting 4 B per record -- garbage for every
+# alias after the first, and only ~12% of the bank's strings emitted at all.
+# mp_mirage boot 1 fast-failed opening a bank name that was actually an alias
+# name. FLAG-GATED so the fleet default is unchanged until it is ruled in.
+SNDBANK_PC_STRIDE_FIX = False
+
+# Platform bank paths. The console zone must not carry PC paths; genuine console
+# zones hold `.wiiu.snd`. REQUIRES the stride fix -- without it the walk emits
+# the WRONG ~12% of strings, so renaming them would turn platform_string_gate
+# GREEN on a zone that boots exactly as badly (the missing-input shape).
+SNDBANK_PLATFORM_RENAME = None    # e.g. [(b'.pc.snd', b'.wiiu.snd')] or None
+
+# Keep the emitted body BYTE-LENGTH IDENTICAL to the legacy output by taking the
+# growth out of the zeroed loadedAssets capacity, so nothing downstream of the
+# largest body in the zone moves. Costs one extra emitter pass (the same function
+# called with legacy parameters -- ONE implementation, never a second walk).
+SNDBANK_SIZE_NEUTRAL = True
+# The capacity is a runtime buffer sized at PC_dataSize * 0.21. The two GENUINE
+# console/PC ratios are mp_raid 0.1972 and common_mp 0.1948. Absorbing growth may
+# not push below the larger -- that would trade a loud walk bug for a silent
+# undersized-buffer failure. REFUSES; it does not clamp.
+SNDBANK_CAPACITY_FLOOR_RATIO = 0.1972
+
+# --- P5: the .sab checksums the ENGINE VALIDATES ------------------------------
+# The console SndAssetBankHeader embeds each deployed bank FILE's own
+# header[0x38:0x48] and the engine Sys_Error's on mismatch (hw-confirmed
+# 2026-07-09). CALIBRATED on genuine console mp_raid -- the genuine zone head vs
+# the console's own deployed banks on E:\ -- both spans matched EXACTLY:
+#
+#     head[0x0830:0x0840]  ==  <bank>.all.sabs  header[0x38:0x48]   VERBATIM
+#     head[0x1152:0x1162]  ==  <bank>.all.sabl  header[0x38:0x48]   VERBATIM
+#
+# Note the .sabl span starts at 0x1152, i.e. +2 INSIDE the (0x1150, 20) entry of
+# SNDBANK_CKSUM_BLOCKS. That block is 2 + 16 + 2.
+#
+# * VERBATIM, AND THAT IS THE SECOND DEFECT AT THIS OFFSET. The value is a 16-byte
+# MD5 -- a BYTE STRING, not four u32s -- and the blanket _swapw over the 4756-byte
+# head word-swaps it. So the PC checksum we were carrying was not merely the wrong
+# bank's, it was also byte-order-mangled. Shipping even the PC bank would have
+# failed the engine's check.
+#
+# * SNDBANK_CKSUM_BLOCKS IS MISNAMED: only (0x830,16) and (0x1150,20) are
+# checksums. (0x940,12) and (0x1264,8) are the zone*/language* POINTER PAIRS (one
+# unaligned, at 0x942/0x946) -- see sndbank_head_reloc. Overlaying a genuine head
+# fixes both at once, which is why the conflation never showed. A map with
+# CONVERTED banks needs them handled separately: checksums from our banks (here),
+# pointers minted through reloc (P3).
+SNDBANK_BANK_FILES = None     # {bank_name: {'sabs': path, 'sabl': path}} or None
+# (head offset, which bank file) -- 16 bytes each, copied VERBATIM
+SNDBANK_CKSUM_SPANS = ((0x830, 'sabs'), (0x1152, 'sabl'))
+SNDBANK_SAB_HDR_CKSUM = (0x38, 16)      # where the checksum lives in the .sab FILE
+
+# --- P3 (option A): the bank-name POINTER PAIRS ------------------------------
+# The head carries the bank's zone*/language* at THREE sites. On a converted map
+# they are PC-frame values carried verbatim -- and the pair at 0x942/0x946 is not
+# 4-aligned, so the blanket _swapw over the head SHREDS it (mirage measured:
+# 0000F0DC / A5C60000). Neither points at anything in our frame.
+#
+# ⛔ WHY WE DO NOT MINT THEM. The obvious repair is to re-mint through the rt model,
+# which is what sndbank_head_reloc does for raid. CALIBRATED AND REFUTED 2026-08-18:
+# resolving GENUINE console raid's OWN head pointers through loader_sim.InverseMap
+# lands 1,668 B and 2,397 B short of the strings they name -- two different
+# residuals, so not a constant. raid's mint works because map_config carries a
+# DUMP-MEASURED `sndbank_rt_sim_residual`; the model itself is knowingly wrong in
+# this region (map_config's own raid note: "+0x4000 LOW at the SndBank tail").
+# Mirage has no dump, so no residual exists, and minting through a model just
+# measured missing by 2 KB is the approx-path class of error.
+#
+# ⭐ WHAT WE DO INSTEAD, AND ITS EVIDENCE. Zero the two pairs. That is the shape of
+# a GENUINE console english bank (mp_raid_genuine: +0x20/+0x24 and +0x942/+0x946 all
+# 00000000) and the shape SNDBANK_HEAD_SANITIZE produces for mp_skate, WHICH BOOTS
+# ON REAL HARDWARE. The stream bank pair at +0x20/+0x24 is left FOLLOW so the
+# engine still composes `<zone>.<language>.sabs` from our inline strings -- that is
+# the field boot 1 died on and it is the one thing here that must keep working.
+#
+# ⚠ STATED SO IT IS NOT OVER-READ: skate ships this head shape TOGETHER WITH
+# SNDBANK_EMPTY_ALIASES, so skate's bank is a stub. A bank with REAL alias arrays
+# and NULL pairs is a FIRST, not a proven combination. Boot 2's pre-registration
+# carries it as a predicted-outcome row, not as a claim.
+SNDBANK_NULL_BANK_PAIRS = None    # set([bank_name, ...]) or None
+# (start, end) of each pair. 0x940..0x94c covers the UNALIGNED pair at 0x942/0x946
+# plus the word either side -- the same span SNDBANK_HEAD_SANITIZE zeroes.
+SNDBANK_PAIR_SPANS = ((0x940, 0x94c), (0x1264, 0x126c))
+# The checksum spans the pair-zeroing must never touch. Kept as its own name so the
+# overlap check reads as an invariant rather than as two magic numbers.
+SNDBANK_CKSUM_SPANS_GUARD = ((0x830, 16), (0x1152, 16))
+
+
+def bank_checksum(path):
+    """The 16 bytes the zone must carry for this bank file. RAISES if unreadable --
+    a missing bank is a refusal, never a zero-filled placeholder."""
+    co, cl = SNDBANK_SAB_HDR_CKSUM
+    if not path or not os.path.exists(path):
+        raise SndBankConversionRefusal(
+            'bank file %r does not exist, so its checksum cannot be read. The zone '
+            'embeds this value and the engine Sys_Error\'s on mismatch; emitting a '
+            'placeholder would ship a zone that refuses to load its own sound.'
+            % (path,))
+    with open(path, 'rb') as f:
+        hdr = f.read(co + cl)
+    if len(hdr) < co + cl:
+        raise SndBankConversionRefusal(
+            'bank file %r is only %d B, too short to contain a header checksum at '
+            '0x%X..0x%X.' % (path, len(hdr), co, co + cl))
+    return hdr[co:co + cl]
+
+
+def verify_bank_checksums(body, files):
+    """-> list of (span_offset, kind, found, expected) for every span that does NOT
+    match. Empty list == the zone names the banks it will be shipped with.
+
+    Separate from the emitter ON PURPOSE: this reads the FINISHED artefact, so it
+    can be run by a gate against the zone we are actually about to deploy rather
+    than against the emitter's intention."""
+    bad = []
+    for span_off, kind in SNDBANK_CKSUM_SPANS:
+        want = bank_checksum(files.get(kind))
+        got = bytes(body[span_off:span_off + len(want)])
+        if got != want:
+            bad.append((span_off, kind, got, want))
+    return bad
+
+
+class SndBankConversionRefusal(_bake_errors.FatalBakeError):
+    """RAISES, and now actually REFUSES.
+
+    ⛔ THIS WAS A BARE `RuntimeError` AND THAT MADE IT DECORATIVE.
+    `produce_nobackbone.emit_one` ends in `except FatalBakeError: raise` followed
+    by `except Exception as ex: body = None; why = 'EXC:...'`. A RuntimeError takes
+    the second branch: all three of the refusals below were downgraded to a dropped
+    SndBank body and a one-line note in a per-asset table, and the bake continued.
+
+    I wrote them, tested that they raise, and never checked what happened to them on
+    the way out -- I VERIFIED THE THING I BUILT AND NOT THE PATH IT TRAVELS. The
+    nuked lane shipped the identical defect in the same file on the same morning.
+
+    Inheriting the contract is the fix; a third `except ...: raise` beside the
+    existing one would be a list of special cases someone forgets to extend."""
+
 
 def _swapw(b):
     """Byte-swap every 4-byte word (console v148 is big-endian). len(b) MUST be a
@@ -191,7 +336,7 @@ def _duck_be(p76):
     return p76[0:32] + _swapw(p76[32:76])
 
 
-def convert_sndbank(pc, off, reloc=_default_reloc):
+def convert_sndbank(pc, off, reloc=_default_reloc, _legacy_params=False):
     """PC(LE) SndBank -> console(BE): the layout is PC-IDENTICAL but the console
     is BIG-ENDIAN, so every struct WORD is byte-swapped while string bytes and the
     (zeroed) sample-data blob are kept verbatim (sndbank_probe: "console serializes
@@ -209,8 +354,27 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
     import sndbank_probe as _S
     import sndbank_audio_convert as SAC
     body = _S.BODY
-    end, name, ac, stats = _S.parse_sndbank(pc, off, '<')
+    # * THE PC STRIDE IS A READ PARAMETER; THE CONSOLE RECORD SIZE IS A WRITE
+    # PARAMETER. They are different numbers (96 vs 100) and one symbol was serving
+    # both. `_legacy_params` reproduces the pre-fix behaviour EXACTLY and exists so
+    # the size-neutral pass can measure the legacy length with THIS SAME EMITTER
+    # rather than a second implementation of the walk.
+    stride = (_S.PC_ALIAS if (SNDBANK_PC_STRIDE_FIX and not _legacy_params)
+              else _S.ALIAS)
+    renames = (SNDBANK_PLATFORM_RENAME
+               if (SNDBANK_PLATFORM_RENAME and not _legacy_params) else ())
+    if renames and not SNDBANK_PC_STRIDE_FIX:
+        raise SndBankConversionRefusal(
+            "SNDBANK_PLATFORM_RENAME is set but SNDBANK_PC_STRIDE_FIX is not. The "
+            "un-fixed walk emits the wrong ~12% of the bank's strings, so renaming "
+            "them would satisfy platform_string_gate on a zone that still names a "
+            "file that cannot exist. Refusing rather than going green.")
+    end, name, ac, stats = _S.parse_sndbank(pc, off, '<', alias_stride=stride)
     nxt = sndbank_pc.parse_sndbank_pc(pc, off)
+    # `nxt` is deliberately taken at the DEFAULT stride: parse_sndbank_pc skips the
+    # trailing zero run to the next asset, and that skip absorbs the deficit, so the
+    # next-asset boundary is INVARIANT under the stride (verified on all five
+    # subject zones). Leaving it alone keeps the asset chain untouched.
     # raid control: emit the genuine main-bank body verbatim (see SNDBANK_MAIN_OVERLAY).
     if SNDBANK_MAIN_OVERLAY is not None and name in SNDBANK_MAIN_OVERLAY:
         return SNDBANK_MAIN_OVERLAY[name], nxt
@@ -241,12 +405,19 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
             struct.pack_into('>I', out, _o8, 0)
     o = off + body
     freed = [0]                                 # bytes suppressed under `empty`
+    grown = [0]                                 # bytes ADDED by the platform rename
 
-    def emit_string(suppress=False):            # NUL-terminated string, verbatim
+    def emit_string(suppress=False):            # NUL-terminated string
         nonlocal o
         nul = pc.index(b'\x00', o)
         if not suppress:
-            out.extend(pc[o:nul + 1])
+            sb = pc[o:nul + 1]
+            for pc_tok, co_tok in renames:      # platform bank path, in-emitter
+                if pc_tok in sb:
+                    nb = sb.replace(pc_tok, co_tok)
+                    grown[0] += len(nb) - len(sb)
+                    sb = nb
+            out.extend(sb)
         else:
             freed[0] += nul + 1 - o
         o = nul + 1
@@ -266,10 +437,14 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
             if lname_p in PTRS:
                 emit_string(empty)              # list name
             if head_p in PTRS:
-                ab = o; o += cnt * _S.ALIAS
+                ab = o; o += cnt * stride
                 for k in range(cnt):                # SndAlias[] array (field-aware)
-                    a = ab + k * _S.ALIAS
-                    ab_out = bytearray(_alias_be(pc[a:a + _S.ALIAS]))
+                    a = ab + k * stride
+                    # _alias_be consumes 96 B and appends the console's 4 pad bytes
+                    # (its own docstring says '+96..+99 : pad -> zero') -- it was
+                    # ALWAYS written for a 96-byte PC record. Slicing 96 here is
+                    # byte-identical under either stride; only the CURSOR was wrong.
+                    ab_out = bytearray(_alias_be(pc[a:a + 96]))
                     if SNDBANK_ALIAS_ORACLE is not None:   # genuine name/assetId hashes
                         nm_be, aid_be = SNDBANK_ALIAS_ORACLE[alias_i]
                         # keep FOLLOW name fields (their inline string still follows -> the
@@ -283,7 +458,7 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
                         freed[0] += len(ab_out)
                     alias_i += 1
                 for k in range(cnt):
-                    a = ab + k * _S.ALIAS
+                    a = ab + k * stride
                     for po in (a + 0, a + 8, a + 12, a + 20):   # name/sub/sec/file
                         if u32(po) in PTRS:
                             emit_string(empty)
@@ -344,14 +519,45 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
     # loadedAssets zeroed data buffer so the emitted SndBank body is byte-length-identical
     # to the non-emptied one -> the zone layout and the measured runtime map stay valid
     # (no re-measure needed; the extra zeros are harmless runtime capacity).
-    cds_emit = cds + (freed[0] if (empty or sanitize) else 0)
+    cds_emit = cds + (freed[0] if (empty or sanitize) else 0) - grown[0]
+    data_ins = None
     if u32(off + 0x127c) == FOLLOW:              # data: zeroed runtime buffer
-        o += ds; out += b'\x00' * cds_emit
+        o += ds; data_ins = len(out)             # blob inserted after sizing below
     if u32(off + 0x1284) == FOLLOW:
         s = o; o += silc * 8
         if not empty:
             out += _swapw(pc[s:o])                # scriptIdLookups
     assert o == end, (hex(o), hex(end))
+
+    # ---- SIZE-NEUTRAL: emitted body length identical to the legacy one ---------
+    # The corrected walk emits the strings that were being skipped (mirage 13,522 ->
+    # 108,385 B). The loadedAssets data blob is a ZEROED RUNTIME CAPACITY, i.e. a
+    # free parameter, so the growth comes out of it and NOTHING DOWNSTREAM OF THE
+    # LARGEST BODY IN THE ZONE MOVES. This is the `freed[0]` mechanism already in
+    # this function, run in the other direction.
+    if (SNDBANK_SIZE_NEUTRAL and not _legacy_params
+            and (SNDBANK_PC_STRIDE_FIX or renames)):
+        legacy_len = len(convert_sndbank(pc, off, reloc, _legacy_params=True)[0])
+        if data_ins is None:
+            if legacy_len != len(out):
+                raise SndBankConversionRefusal(
+                    "bank %r has no loadedAssets data blob, so there is no capacity "
+                    "to absorb the %+d B change; size-neutrality is unreachable here."
+                    % (name, len(out) - legacy_len))
+        else:
+            cds_emit = legacy_len - len(out)
+            floor = int(ds * SNDBANK_CAPACITY_FLOOR_RATIO)
+            if cds_emit < floor:
+                raise SndBankConversionRefusal(
+                    "bank %r: absorbing the corrected walk would leave a loadedAssets "
+                    "capacity of %d B (ratio %.4f of the PC %d B), BELOW the genuine "
+                    "console floor %d B (ratio %.4f). Refusing: an undersized runtime "
+                    "buffer is a SILENT audio failure, and trading a loud bug for a "
+                    "silent one is not a fix."
+                    % (name, cds_emit, cds_emit / float(ds or 1), ds, floor,
+                       SNDBANK_CAPACITY_FLOOR_RATIO))
+    if data_ins is not None:
+        out[data_ins:data_ins] = b'\x00' * cds_emit
     # loadedAssets counts: BIG-ENDIAN, console-sized
     struct.pack_into('>I', out, 0x1270, cec)
     struct.pack_into('>I', out, 0x1278, cds_emit)
@@ -372,6 +578,39 @@ def convert_sndbank(pc, off, reloc=_default_reloc):
             and u32(off + 0x1274) == FOLLOW and u32(off + 0x127c) == FOLLOW):
         for co, cl in SNDBANK_CKSUM_BLOCKS:
             out[co:co + cl] = SNDBANK_HEAD_OVERLAY[co:co + cl]
+
+    # ---- P5: point the zone at the banks WE will deploy ------------------------
+    # Only for banks we converted ourselves. A map with a genuine console oracle
+    # takes the branch above instead; doing both would be two sources of truth for
+    # the same 16 bytes, so that combination REFUSES rather than picking one.
+    if SNDBANK_BANK_FILES and name in SNDBANK_BANK_FILES:
+        if SNDBANK_HEAD_OVERLAY is not None:
+            raise SndBankConversionRefusal(
+                "bank %r has BOTH a genuine-console head overlay and converted bank "
+                "files. Those are two different answers for the same checksum bytes "
+                "and I will not silently prefer one. Supply exactly one." % (name,))
+        for span_off, kind in SNDBANK_CKSUM_SPANS:
+            blk = bank_checksum(SNDBANK_BANK_FILES[name].get(kind))
+            out[span_off:span_off + len(blk)] = blk
+        # Assert what we just did, against the same reader a gate will use later.
+        bad = verify_bank_checksums(out, SNDBANK_BANK_FILES[name])
+        if bad:
+            raise SndBankConversionRefusal(
+                "bank %r: checksum write did not take at %s" % (name, bad))
+
+    # ---- P3 (A): zero the bank-name pointer pairs -----------------------------
+    # AFTER the checksum write on purpose: the spans do not overlap (0x830 and
+    # 0x1152 are checksums; 0x940..0x94c and 0x1264..0x126c are pointers), but
+    # ordering them explicitly means a future overlap shows up as a test failure
+    # rather than as whichever write happened to run last.
+    if SNDBANK_NULL_BANK_PAIRS and name in SNDBANK_NULL_BANK_PAIRS:
+        for _s, _e in SNDBANK_PAIR_SPANS:
+            for _co, _cl in SNDBANK_CKSUM_SPANS_GUARD:
+                if not (_e <= _co or _s >= _co + _cl):
+                    raise SndBankConversionRefusal(
+                        "pair span 0x%X..0x%X overlaps checksum span 0x%X+%d; one "
+                        "would silently overwrite the other" % (_s, _e, _co, _cl))
+            out[_s:_e] = b'\x00' * (_e - _s)
     return bytes(out), nxt
 
 

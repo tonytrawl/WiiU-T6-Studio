@@ -17,6 +17,7 @@ calibration can falsify them per zone.
 Built on body_relayout.ReEmitter (round-trip-proven structural walk) via
 subclassing — body_relayout itself is untouched (shared file).
 """
+from bake_errors import FatalBakeError
 import struct, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'wiiu_ref'))
@@ -39,7 +40,23 @@ FOLLOW = 0xFFFFFFFF
 # Every other map REFUSES (ruling (a)): a first bake must not inherit a value
 # with no evidence behind it. Deleting an entry restores the refusal, which is
 # the intended end state for zm_nuked once the S_clip anchor is repaired.
-ZERO_HIT_LIVE_EXEMPT = {'zm_nuked.zone'}
+# RETIRED 2026-08-20 -- the defect it covered is FIXED, so the entry is gone.
+# It existed because the old S_snd-centred window sweep scored 0/261 on zm_nuked, and the
+# map was LIVE, so PM ruling (b) 2026-08-17 kept its values byte-identical and LOUD instead
+# of refusing. The window has since been replaced by a candidate-enumeration vote (see the
+# S_clip block in derive_pc_policy) and zm_nuked now derives S_clip = -464 at 258/261 hits --
+# the exact value the old refusal text recorded as the content-vote answer, and one the old
+# window could never have reached: nuked's window was [-178168, -118168].
+#
+# MEASURED 2026-08-20, all four subjects:
+#     mp_raid      S_clip -440  223/223   (positive control: the old sweep's known-good answer)
+#     zm_nuked     S_clip -464  258/261   (predicted by the old refusal text, not searched for)
+#     zm_highrise  S_clip  -16  286/294   (predicted likewise)
+#     zm_transit   REFUSED -- 0 SndBank assets, so S_snd has no population. Correct.
+#
+# An empty set is deliberate, not a placeholder: a map-name allow-list that outlives its
+# defect is how an exemption becomes permanent. Re-adding an entry requires a dated reason.
+ZERO_HIT_LIVE_EXEMPT = set()
 
 # HOOK-FIRE COUNTERS (rule GX: a claim about whether a policy knob is CONSUMED
 # must be measured, not read off a grep). Incremented at the point of USE, never
@@ -60,6 +77,15 @@ def policy_hooks():
 
 def _hook(key, n=1):
     _POLICY_HOOKS[key] = _POLICY_HOOKS.get(key, 0) + n
+
+
+class AnchorStalenessRefusal(FatalBakeError):
+    """A dump-measured anchor_rt table whose simmap no longer describes this build.
+
+    Inherits FatalBakeError (NOT PolicyRefusal) so it escapes produce_nobackbone's blanket
+    handler via the `except FatalBakeError: raise` guard, and is never mistaken for the
+    IndexError-shaped "no GfxWorld in this zone" condition. See `simulate_stream`'s docstring
+    for the measured evidence."""
 
 
 class PolicyRefusal(RuntimeError, IndexError):
@@ -262,7 +288,55 @@ def simulate_stream(CO, assets, start_off, base_rt, verbose=False, policy=None):
     degrades to a verbatim linear region instead of desyncing the walk).
     Body stream begins at start_off, virtual runtime cursor starts at base_rt.
     Returns (emitter, spans): emitter.omap maps stream block-5 offsets ->
-    simulated runtime block-5 offsets; spans = (idx, name, root, start, end)."""
+    simulated runtime block-5 offsets; spans = (idx, name, root, start, end).
+
+    ANCHOR STALENESS GATE (2026-08-20). A dump-measured `policy['anchor_rt']` is built from a
+    STORED simmap. Its INDEX DOMAIN is sound -- measured, not assumed: the simmap keeps every
+    row's `out_assets` position (3,089 body spans + 71 skipped bodyless rows == max index
+    3,159 + 1) and `meta` appends bodyless rows too, so both sides index the same positions.
+    (This lane previously claimed a +3 domain fault here. RETRACTED; the +3 belonged to
+    `produce_nobackbone.py:277`'s `idx_remap`, a different mapping read as this one.)
+
+    What is NOT sound is the table's VALUES once the asset list changes shape. Measured: the
+    stored `_zmnuked_simmap.pkl` matches b94 exactly at 3,089 body spans, while b102 carries
+    3,099 -- the ten aliased-techset bodies b96 emitted. Every anchor still names the right
+    asset, and every value downstream of the first new body was measured against a stream ten
+    bodies shorter. Re-phasing to those values walks assets at addresses that no longer exist,
+    and NOTHING detected it: the build succeeded and the error landed in minted pointers.
+
+    So this REFUSES rather than re-measuring (PM ruling: no re-measure campaign; the bake-time
+    derivation stage supersedes anchor dependence). It compares the manifest against THIS
+    build's ACTUAL asset list -- not a derivation from the same source -- on two properties:
+        (1) row count        -- `assets` must be long enough for the simmap's highest index
+        (2) per-row identity -- `assets[i][0]` must be the name the simmap recorded at i
+    That also closes, without a separate proof, whether pass-2's `out_assets` can differ from
+    the final one: if it can, the divergence trips this instead of passing unnoticed.
+
+    Raises `AnchorStalenessRefusal`, which inherits `FatalBakeError` SPECIFICALLY so it
+    survives `produce_nobackbone.py`'s `except FatalBakeError: raise` guard ahead of the
+    blanket handler below it -- and NOT `PolicyRefusal`, which subclasses IndexError and would
+    be swallowed by `produce_container.py`'s `except IndexError` as "no GfxWorld -> policy
+    None". A refusal is only a refusal if every handler between it and the driver lets it out."""
+    _anch = (policy or {}).get('anchor_rt')
+    _man = getattr(_anch, 'manifest', None)
+    if _anch and _man:
+        if _man['max_index'] >= len(assets):
+            raise AnchorStalenessRefusal(
+                'anchor_rt is STALE: its simmap %s (md5 %s) records asset index %d, but this '
+                'build has only %d assets. The stored anchors were measured against a '
+                'DIFFERENT asset list, so their values do not describe this stream. '
+                'Re-measure the simmap/realmap pair for this build, or drop anchor_rt.'
+                % (_man['source'], _man['md5'][:12], _man['max_index'], len(assets)))
+        _bad = [(i, nm, assets[i][0]) for (i, nm) in _man['rows'] if assets[i][0] != nm]
+        if _bad:
+            raise AnchorStalenessRefusal(
+                'anchor_rt is STALE: its simmap %s (md5 %s) disagrees with this build at %d '
+                'of %d recorded spans. First 5: %s. The index domains match by construction, '
+                'so a NAME mismatch means the asset list CHANGED SHAPE since the simmap was '
+                'taken -- every anchor value downstream of the first change was measured '
+                'against a different stream. Re-measure, or drop anchor_rt.'
+                % (_man['source'], _man['md5'][:12], len(_bad), _man['n_spans'],
+                   '; '.join('i=%d simmap=%r now=%r' % b for b in _bad[:5])))
     Lc = struct_layout.Layout(W.HDR, console=True)
     zc = W.ZoneCode(W.ZC_DIR)
     w = SimWriter(); w.push_block(zs.BLOCK_VIRTUAL)
@@ -360,7 +434,14 @@ def simulate_stream(CO, assets, start_off, base_rt, verbose=False, policy=None):
                 return GEV.gfxworld_console_events(
                     z, o, span_end, planes_skip=pk, matmem_skip=mk,
                     end_residual=pol.get('gfx_skip', 0) - pk - mk)
-            CONSOLE_EVENTS['GfxWorld'] = (_gfx_console_events, 1076)
+            # ⭐ ROOT SIZE 1096, NOT 1076 (corrected 2026-08-20, zm_nuked lane item 4).
+            # This is the SECOND copy of the gfxworld_probe2 constants defect, and it is the
+            # one that reaches the runtime model: espec[1] is the asset ROOT SIZE handed to
+            # replay_events, so at 1076 every GfxWorld interior was replayed with the cursor
+            # 20 B short of the loader's. Load_GfxWorld opens Load_Stream(r5=0x448) = 1096
+            # (rt_events_gfxworld.py:84 has said so since 2026-07-14); gfxworld_emit.py:135
+            # already EMITS 1096. Found by the mirage lane while A/B-ing the probe2 table.
+            CONSOLE_EVENTS['GfxWorld'] = (_gfx_console_events, 1096)
         CONSOLE_DELIM = {
             'XAnimParts': (lambda z, o: XA.parse_xanim(z, o, '>')[0], None),
             # generic walk under-consumes non-raid GfxWorlds (streamInfo
@@ -694,18 +775,87 @@ def simulate_pc(pc_path_or_bytes, verbose=False, policy=None):
 
 
 class InverseMap:
-    """PC runtime b5 -> PC stream b5 (piecewise inverse of emitter.omap)."""
+    """PC runtime b5 -> PC stream b5 (piecewise inverse of emitter.omap).
+
+    ⛔⛔ THIS IS AN INTERPOLATION, AND OVER MOST OF THE ADDRESS SPACE THERE IS NOTHING TO
+    INTERPOLATE BETWEEN. Measured 2026-08-20 on three PC zones:
+
+        zone         omap entries   address span inside gaps >= 64KB   two widest gaps
+        zm_nuked        19,547              93.5 %                    172.4 MB + 67.2 MB
+        mp_mirage       34,242              93.5 %                     47.7 MB + 27.8 MB
+        mp_raid         28,302              94.2 %                     58.5 MB + 24.8 MB
+
+    The median gap is 8-10 B, so the map is dense where it is dense and then simply STOPS.
+    `stream()` brackets a target with bisect and extends linearly from the last mapped point
+    below it -- across holes tens of megabytes wide.
+
+    ⭐ WHAT THAT COSTS, MEASURED AGAINST GROUND TRUTH: all ten of zm_nuked's aliased-techset
+    bodies fall inside ONE 67.2 MB hole. The hole's endpoints are nearly consistent (1,028 B
+    of drift over 67 MB), so the linear model LOOKS reasonable -- and the real offsets are up
+    to 47,992,536 B away from what it returns. That is how the b99 registration spent four
+    builds registering pixel data as techset spans and only RAISED once, when one row's
+    garbage happened to exceed the buffer (b103 diagnostic bake).
+
+    ⛔ A WIDE GAP IS NOT PROOF OF AN ERROR -- interpolation is exact if stream and runtime
+    advance together through it. The defect is that NOTHING DISTINGUISHES THE TWO CASES. So
+    this does not pretend to fix the arithmetic (you cannot interpolate where there is no
+    data); it REPORTS the gap it interpolated across so a caller can refuse. Callers that
+    resolve INTERIOR addresses should use `stream_checked` and refuse on a wide gap; the
+    sound alternative, where an identity is available, is to locate by NAME instead
+    (rule DX -- see aliased_techset_locate.py).
+
+    ⭐ NOT the bug, so nobody re-runs it: rt monotonicity in stream order was CHECKED, not
+    assumed -- 0 descents over all 19,547 zm_nuked entries. The bisect is valid.
+
+    ⚠ `stream()` keeps its exact previous behaviour and return type. Every existing caller is
+    unchanged by this landing.
+    """
+    #: gap width (bytes) beyond which an interpolated answer is unbacked by data. Not a law --
+    #: a threshold, chosen because the measured holes are 16-172 MB and real inter-entry gaps
+    #: are 8-10 B median. State it when you quote a result that depends on it.
+    WIDE_GAP = 1 << 16
+
     def __init__(self, omap):
-        pairs = sorted(omap.items())            # (stream, rt), both monotonic
+        pairs = sorted(omap.items())            # (stream, rt); rt monotonic -- verified above
         self.rts = [rt for (_, rt) in pairs]
         self.streams = [st for (st, _) in pairs]
 
-    def stream(self, rt_b5):
+    def _bracket(self, rt_b5):
+        """-> (index, gap_width_or_None). gap is None past the last mapped point, where the
+        interpolation is unbounded in principle."""
         import bisect
         i = bisect.bisect_right(self.rts, rt_b5) - 1
         if i < 0:
+            return -1, None
+        gap = (self.rts[i + 1] - self.rts[i]) if i + 1 < len(self.rts) else None
+        return i, gap
+
+    def stream(self, rt_b5):
+        i, _gap = self._bracket(rt_b5)
+        if i < 0:
             return rt_b5
         return self.streams[i] + (rt_b5 - self.rts[i])
+
+    def stream_gap(self, rt_b5):
+        """Width of the unmapped gap this answer was interpolated across, or None past the
+        end of the map. 0 means the target IS a mapped point."""
+        _i, gap = self._bracket(rt_b5)
+        return gap
+
+    def stream_checked(self, rt_b5, wide=None):
+        """-> (stream_b5, gap). `gap` is the evidence; the CALLER decides.
+
+        Deliberately not a raise: this class has callers that legitimately resolve addresses
+        which are mapped points or near them, and turning their working path into an exception
+        would be a different change from the one this landing is scoped to."""
+        i, gap = self._bracket(rt_b5)
+        st = rt_b5 if i < 0 else self.streams[i] + (rt_b5 - self.rts[i])
+        return st, gap
+
+    def is_backed(self, rt_b5, wide=None):
+        """True when the answer rests on data rather than on extension into a hole."""
+        gap = self.stream_gap(rt_b5)
+        return gap is not None and gap <= (self.WIDE_GAP if wide is None else wide)
 
 
 def calibrate_pc(pc_path, verbose=True, policy=None):
@@ -1098,11 +1248,13 @@ def _derive_pc_policy(pc_path, verbose=True):
     nmats = u32(cm[0] + 16)
     mb = cm[0] + 332
     names = set()
+    name_offs = []                       # (file offset of the string, the string)
     o2 = mb + nmats * 12
     for i in range(nmats):
         if u32(mb + i * 12) == FOLLOW:
             e2 = PC.index(b'\x00', o2)
             names.add(bytes(PC[o2:e2]))
+            name_offs.append(o2)         # <- the S_clip vote needs POSITIONS, not just text
             o2 = e2 + 1
     idxs = [i for i in range(nmats)
             if 0xA0000001 <= u32(mb + i * 12) <= 0xBFFFFFFF]
@@ -1120,12 +1272,51 @@ def _derive_pc_policy(pc_path, verbose=True):
             except ValueError:
                 pass
         return h
+    # ------------------------------------------------------------------ 2026-08-20
+    # S_clip BY CANDIDATE ENUMERATION, NOT BY A WINDOW SWEEP.
+    #
+    # THE OLD CODE swept S over [S_snd - 30000, S_snd + 30000] and argmax'd `_hits`. Two
+    # defects, one fatal:
+    #   (a) `best` seeded at (-1, None) with a strict `>`, so a ZERO-HIT sweep returned the
+    #       FIRST candidate -- the window's lower bound -- and pinned lump to +30000. An
+    #       argmax over nothing is a value with no evidence.
+    #   (b) THE WINDOW IS CENTRED ON S_snd, WHICH IS AN MP-SHAPED PREMISE. Measured:
+    #       mp_raid 223/223 inside the window, but zm_nuked 0/261 and zm_highrise 0/294 --
+    #       BOTH big ZM maps -- with their true anchors (S=-464, S=-16) far outside it.
+    #       zm_transit, the only genuine ZM map for which we hold BOTH the PC source and the
+    #       shipped Wii U build, cannot even reach this code: it carries ZERO SndBank assets,
+    #       so S_snd -- the window's centre -- has no population on it at all. A derivation
+    #       whose centre is undefined for an entire class of map is the wrong derivation.
+    #
+    # THE FIX IS TO STOP SEARCHING. This function's SIBLING constant, S_snd, is already
+    # derived correctly a few lines above: it is the MODE of `alias_rt - rtmap.rt(offset)`
+    # over every (alias value, stream offset) pair. The true S is in that tally BY
+    # CONSTRUCTION, so no window is needed and none can exclude the answer. S_clip is now
+    # derived the same way its sibling always was -- every (clipMap material alias, inline
+    # material-name offset) pair contributes one candidate, the tally is voted, and the top
+    # candidates are then CONFIRMED with the same `_hits` content check as before.
+    #
+    # A window cannot exclude the answer if there is no window. See rule (GX)/instrument-laws
+    # -- "a window is not a population" -- and FINDINGS_i4/i5 for the same technique used to
+    # derive implied displacements elsewhere in this lane.
+    cc = _C()
+    for i in idxs:
+        _rt = (u32(mb + i * 12) - 1) & 0x1FFFFFFF
+        for _no in name_offs:
+            cc[_rt - rtmap.rt(_no - B5_BASE)] += 1
     best = (-1, None)
-    for S in range(S_snd - 30000, S_snd + 30001):
-        hits = _hits(S)
-        if hits > best[0]:                 # strict > keeps the SMALLEST peak
-            best = (hits, S)
+    for _S, _votes in cc.most_common(64):
+        _h = _hits(_S)
+        if _h > best[0]:
+            best = (_h, _S)
     S_clip = best[1]
+    if S_clip is None:
+        raise PolicyRefusal(
+            'derive_pc_policy REFUSED for %s: the S_clip candidate tally is EMPTY (%d alias '
+            'candidates x %d inline names). With no candidate there is nothing to vote on, '
+            'and a window sweep would only have manufactured a value.'
+            % (zname, len(idxs), len(name_offs)), zone=zname,
+            premise='S_clip candidate pairs', population=0)
     # ⚠ SAME DEFECT CLASS AS THE SndBank REFUSAL ABOVE, FOUND 2026-08-16 while
     # sweeping the fleet — REPORTED, DELIBERATELY NOT CHANGED.
     #
@@ -1154,6 +1345,17 @@ def _derive_pc_policy(pc_path, verbose=True):
     # NB: ASCII only. This prints on every bake, including build contexts whose
     # stdout is cp1252 -- a non-ASCII glyph here would raise UnicodeEncodeError
     # and turn a warning into a new crash.
+    if best[0] > 0 and os.path.basename(pc_path) in ZERO_HIT_LIVE_EXEMPT:
+        # SELF-RETIRING EXEMPTION. The allow-list exists only because the old S_snd-centred
+        # window scored 0 hits on this map. Now that the candidate-enumeration vote resolves
+        # it, the entry is dead weight -- and a stale allow-list entry is exactly how a
+        # map-name exemption outlives the defect it was written for. Say so LOUDLY rather
+        # than recording the debt in prose: a debt recorded in prose is not discharged.
+        # ASCII only -- this prints on every bake, including cp1252 stdout contexts.
+        print('  *** %s: S_clip now derives with %d/%d hits (S=%d). Its '
+              'ZERO_HIT_LIVE_EXEMPT entry is NO LONGER NEEDED -- REMOVE IT from '
+              'loader_sim.ZERO_HIT_LIVE_EXEMPT.'
+              % (os.path.basename(pc_path), best[0], len(idxs), S_clip))
     if best[0] <= 0:
         if os.path.basename(pc_path) not in ZERO_HIT_LIVE_EXEMPT:
             raise PolicyRefusal(

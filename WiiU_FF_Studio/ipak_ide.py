@@ -297,6 +297,7 @@ class IpakIDE(Workspace):
         self.cur = None
         self.title_lbl.config(text=os.path.basename(path))
         self.title("%s -- %s" % (APP_TITLE, os.path.basename(path)))
+        self.set_document(path)          # keeps doc.path honest, not just the tab caption
         self._refill()
         st = self.session.stats()
         self.summary.config(
@@ -903,11 +904,24 @@ class IpakIDE(Workspace):
                 "from.\n\nUse Tools > Game folders... and point it at the 'content' folder of "
                 "your Black Ops 2 Wii U install.")
             return
+        # ⛔ THIS USED TO RUN ON THE UI THREAD. `load_shared(rebuild=True)` walks every pak and
+        # every zone under the content folders -- minutes of work -- inside the button handler,
+        # so Tk could not repaint and Windows titled the window "Not Responding". It looked
+        # exactly like a crash, and there was no progress and no way to stop it.
         self._say("harvesting metadata from %s ..." % dirs[0])
+        from core import uiutil as UI
         try:
-            idx = NM.load_shared(rebuild=True)
+            idx = UI.run_with_progress(
+                self, "Rebuilding the name dictionary",
+                lambda report: NM.load_shared(rebuild=True, progress=report),
+                app_title=APP_TITLE)
         except Exception as ex:
-            messagebox.showerror(APP_TITLE, "Harvest failed:\n\n%s" % ex)
+            messagebox.showerror(APP_TITLE, "Harvest failed:\n\n%s: %s"
+                                 % (type(ex).__name__, ex))
+            self._say("harvest failed", WARN)
+            return
+        if idx is None:                       # cancelled: leave the old dictionary in place
+            self._say("dictionary rebuild cancelled -- the previous one is still in use", WARN)
             return
         messagebox.showinfo(APP_TITLE, "Dictionary rebuilt: %d keys, %d distinct image names."
                                        % (len(idx), len(idx.by_name_hash)))

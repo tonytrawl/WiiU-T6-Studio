@@ -19,8 +19,8 @@ Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
 
 * * *
 
-Black Ops II on Wii U keeps its content in four different containers. This tool gives you the
-ability to edit, author, and grow all those files.
+Black Ops II on Wii U keeps its content in four containers. This tool edits, authors and grows all
+of them.
 
 ## What you can do with it
 
@@ -37,24 +37,72 @@ ability to edit, author, and grow all those files.
 * Replace hundreds of textures in one pass from a folder
 
 It opens `.ff` fastfiles, `.ipak` texture paks, `.sabs` / `.sabl` sound banks and the engine's own
-`.rpl` / `.rpx` modules. The window changes to suit whatever you opened. You can have several open
-at once, such as a map's zone next to the pak its textures stream from.
+`.rpl` / `.rpx` modules. The window changes to suit whatever you opened, and several can be open at
+once as tabs.
 
 * * *
 
 ## ⚠️ Read this first
 
+Two things to set up before your first edit. Skip either one and your work will not load, or will
+load without names and warnings.
+
+### 1. Patch the signature check
+
 A fastfile written by this tool, or by any tool, has **no valid RSA signature**. Nobody outside
 Treyarch has the key. An unpatched console checks that signature and refuses the file, which shows
-up as a crash or a hang the moment the zone is requested.
+up as a crash or a hang the moment the zone is requested. It happens even when you save a zone with
+no changes at all.
 
-This is not theoretical. A user with a EU copy had every edit fail, including saving a zone with no
-changes made at all, while the same build worked fine elsewhere. The zones were compared byte for
-byte. Decompressed payloads identical, container framing identical, and the only difference was
-that 256 byte signature block.
+1. Open the **RPL** tab.
+2. Open `t6_cafef_rpl.rpl`, apply **Fastfile signature check**.
+3. Open `t6mp_cafef_rpl.rpl`, apply the same patch.
 
-Open your engine RPL in the **RPL** tab and apply the signature patch before you edit anything. The
-tool checks on startup and tells you if it looks unpatched.
+Patch **both**. `t6_cafef_rpl` loads first and carries its own copy of the same engine code. The
+tool checks on startup and tells you if it looks unpatched. Your original is copied to
+`<name>.stock` before the first edit and that backup is never overwritten.
+
+### 2. Point the tool at your game folders
+
+Texture entries store a numeric hash and no name. Readable names, formats and dimensions come from
+your own paks and zones, and so does the warning that the texture you are editing also exists in a
+pak that loads earlier. Without a game folder you get hex ids and no warnings.
+
+Click **Game folders** in the toolbar and add the `content` folder of your Wii U install, the one
+holding the `.ipak` and `.ff` files. It looks like this:
+
+```
+content/
+  base_split0.ipak … base_split8.ipak
+  mp_nuketown_2020.ipak
+  english/
+    common_patch_mp.ff
+    patch_mp.ff
+```
+
+**Cemu installs are found automatically.** The tool checks Cemu's own data folder for both title
+categories:
+
+| | Path |
+|---|---|
+| Update | `<Cemu>/mlc01/usr/title/0005000e/1010cf00/content` |
+| DLC | `<Cemu>/mlc01/usr/title/0005000c/1010cf00/content` |
+
+`<Cemu>` is `%APPDATA%\Cemu` on Windows, `~/Library/Application Support/Cemu` on macOS, and
+`$XDG_DATA_HOME/Cemu` or `~/.cemu` on Linux. A Wine or Proton prefix is checked too.
+
+Three other things are searched without any configuration:
+
+* The folder you opened a file from, and its parent.
+* The folder the program itself sits in, or a `content` folder inside it. Drop the exe into your
+  game folder and it just works.
+* `WIIU_CONTENT_DIR`, if you set it. Separate multiple paths the way your OS separates `PATH`.
+
+The **Game folders** window lists everything currently being searched, marked `[configured]` or
+`[auto]`. Settings are stored in `wiiu_ff_studio.json` next to the program.
+
+> The disc image is not searched and should not be edited. Maps belong in the DLC folder, patched
+> zones in the update folder.
 
 * * *
 
@@ -62,110 +110,84 @@ tool checks on startup and tells you if it looks unpatched.
 
 Browse every asset in a zone.
 
-GSC and CSC scripts get a disassembly listing plus an editable assembly view, which works whether
-or not you have the source. There is a decompiler that lands around 98% on retail bytecode. Lua and
-HKS get the same treatment and compile from source. Text, cfg and csv files are edited directly.
-Models render in a small software preview with geometry and shading only, enough to identify
-something but not to judge how it looks in game.
+**Scripts.** GSC and CSC get a disassembly listing plus an editable assembly view, with or without
+the source. The decompiler lands around 98% on retail bytecode. Lua and HKS get the same treatment
+and compile from source. Text, cfg and csv files are edited directly.
 
-Scripts and raw files can grow. The zone gets rebuilt and every pointer re-pointed. Afterwards the
-tool re-walks the result and **refuses to write a file whose walk broke**, which is the main thing
-standing between you and a zone that loads to a black screen.
+**Growing a zone.** Scripts and raw files can get bigger. The zone is rebuilt and every pointer
+re-pointed, then re-walked. **A file whose walk broke is refused rather than written.**
 
-Zones also carry their own inline textures, often hundreds of them, embedded in materials and FX
-rather than sitting in the asset list. You can browse, export and replace those. Unlike pak
-textures they can change resolution, because the record is rewritten along with the pixels.
+**Models.** A software preview with geometry and shading, enough to identify something but not to
+judge how it looks in game.
+
+**Inline textures.** Zones carry their own textures, often hundreds, embedded in materials and FX
+rather than in the asset list. Open them with the **Textures** button to browse, export and
+replace. Unlike pak textures these can change resolution, because the record is rewritten with the
+pixels.
+
+Feed one a larger image and you are offered the original size or the largest that still fits. That
+ceiling is measured per texture against the padding after it, so it is whatever the space allows
+rather than a fixed multiple. Sometimes that is double, sometimes 1.6x. Where nothing bigger fits
+you get the original size only, and an image too large for the space is refused.
 
 ## 🖼️ Texture paks (`.ipak`)
 
-Preview, extract and replace streamed textures.
+Preview, extract and replace streamed textures. Use the gallery view to browse visually instead of
+by name.
 
 Replacement re-encodes into the entry's existing format, because the zone tells the GPU how to read
-those bytes. It covers **every part** of an image rather than just the one you clicked. A streamed
-texture is split across up to three parts holding different mip tiers, so doing one leaves the rest
+those bytes. It covers **every part** of an image, not just the one you clicked. A streamed texture
+is split across up to three parts holding different mip tiers, and doing one leaves the rest
 showing the original.
 
-The list has a gallery view if you would rather browse visually than read names.
-
-The console binds each part from the *first* pak it finds it in and never looks again. If a
-base-game pak holds the same texture and loads earlier, your edit is never read. The save succeeds,
-the game shows the old image, and nothing reports a problem. The tool warns you before you spend
-the edit, and **Find asset** shows you every pak holding each part.
+> The console binds each part from the **first** pak it finds it in and never looks again. If a
+> base-game pak holds the same texture and loads earlier, your edit is never read: the save
+> succeeds, the game shows the old image, and nothing reports a problem. The tool warns you before
+> you spend the edit, and **Find asset** shows every pak holding each part.
 
 ## 🔊 Sound banks (`.sabs` / `.sabl`)
 
 Browse entries, see the waveform, play them back, extract to WAV, replace, add and delete.
 
-Untouched entries are written back byte for byte including their original checksums. Retail itself
-ships entries whose stored checksum does not match a recomputation, and "correcting" them is what
-broke banks in earlier attempts.
+Untouched entries are written back byte for byte including their original checksums. Retail ships
+entries whose stored checksum does not recompute, and "correcting" them is what broke banks in
+earlier attempts.
 
-The Wii U format took some working out. Audio is DSP-ADPCM stored at 2/3 of the nominal rate (48000
-down to 32000) while the frame count keeps the original figure. Multi-channel payloads are
-block-interleaved at 64 KB in streamed banks and stored flat in loaded ones, with nothing in the
-file to tell you which. Only the extension.
+Audio is DSP-ADPCM stored at 2/3 of the nominal rate, 48000 down to 32000, while the frame count
+keeps the original figure. Multi-channel payloads are block-interleaved at 64 KB in streamed banks
+and flat in loaded ones, with nothing in the file to tell you which. Only the extension.
 
 ## ⚙️ Engine RPLs (`.rpl` / `.rpx`)
 
-Three patches. The fastfile signature check, the DLC load gate, and the internal render resolution
+Three patches: the fastfile signature check, the DLC load gate, and the internal render resolution
 with eleven presets from 640x480 up, or type your own.
 
-Everything is located by symbol name and instruction pattern rather than by address, because the
-base, MP and update builds put the same code in different places. The resolution site sits at
-`0x0297B418` in one and `0x027FA17C` in another. A patcher pinned to an address quietly does
-nothing on the wrong file.
-
-Your original is copied to `<name>.stock` before the first edit, and that backup is never
-overwritten, so it is always the untouched file no matter how many patches you apply later.
-
-> Patch **both** RPLs. `t6_cafef_rpl` loads first and carries its own copy of the same engine code.
-> Boot-time render setup runs entirely in there.
+Everything is located by symbol name and instruction pattern rather than by address. The base, MP
+and update builds put the same code in different places. The resolution site sits at `0x0297B418`
+in one and `0x027FA17C` in another, so a patcher pinned to an address quietly does nothing on the
+wrong file.
 
 * * *
 
 ## 🔍 Finding things
 
-Texture entries store a numeric hash and nothing else. There are no names anywhere in the file.
-Readable names come from a dictionary harvested out of your zones, which ships prebuilt.
+**Find asset** (`Ctrl+F`) tells you which pak *or fastfile* holds what you are after, including
+textures that live inline in a zone rather than in any pak. Type part of a name or paste a raw
+hash. It reads an index rather than decoding anything, so a search across tens of thousands of keys
+returns instantly.
 
-**Find asset** searches that dictionary and tells you which pak *or fastfile* holds what you are
-after, including textures that live inline in a zone rather than in any pak. Type part of a name or
-paste a raw hash. It reads an index rather than decoding anything, so a search across tens of
-thousands of keys comes back instantly.
+**Bulk replace** points the same machinery at a folder:
 
-**Bulk replace** is the same machinery pointed at a folder. Drop in a pile of images named the way
-the game names them. It finds every pak and zone carrying each one and rewrites them all. Work is
-grouped by destination file, so twenty textures living in one pak open and save that pak once
-rather than twenty times. Anything it cannot match is reported and the rest carries on, because a
-batch that dies halfway leaves you unable to tell what landed.
+1. Name your images the way the game names them, which is what a PC texture mod already does.
+2. Drag the folder onto the window, or use **Bulk replace**.
+3. Review the list. Nothing is written until you confirm.
 
-DDS is fully supported, which matters because it is what PC texture mods ship. PNG, TGA, BMP, JPG,
-GIF, TIFF and WebP work too.
+It finds every pak and zone carrying each image and rewrites them all, grouped by destination file,
+so twenty textures living in one pak open and save that pak once. Everything touched is backed up
+first, and anything it cannot match is reported while the rest carries on.
 
-* * *
-
-## 🪟 Why Windows only
-
-The release is a single Windows executable, and Windows is the only platform being supported for
-now. Some of that is dependencies and some of it is honesty about testing.
-
-Three things genuinely tie to Windows:
-
-* **Audio playback** goes through a Windows audio API. Waveforms, extract, replace and save work
-  anywhere. Hearing a sound does not.
-* **Drag and drop** is implemented directly against `DragAcceptFiles` and `WM_DROPFILES` through
-  ctypes, rather than pulling in a native Tk extension for one convenience.
-* **Shell integration**, meaning Show in folder and finding your real Desktop when OneDrive has
-  redirected it, reads the Windows shell and registry.
-
-The rest is pragmatic. Nearly everyone modding this game is running Cemu on Windows, and I would
-rather ship one platform I actually test than three I do not. Every fallback path degrades quietly
-instead of crashing, but "should work" is not the same as "does work" and I am not going to claim
-the second.
-
-The source is here. The interesting parts, meaning fastfile parsing, GX2 detiling, BCn and
-DSP-ADPCM codecs, and the relinker, are plain Python with no Windows in them. If you want to run it
-on Linux or macOS you can, minus playback and drag and drop. You just will not get a build from me.
+Accepts `.png` `.dds` `.tga` `.bmp` `.jpg` `.gif` `.tif` `.webp`. DDS is covered in full (DXT1-5,
+BC4/5/6H/7, DX10), because that is what PC mods ship.
 
 * * *
 
@@ -173,10 +195,10 @@ on Linux or macOS you can, minus playback and drag and drop. You just will not g
 
 1. **Patch the signature check.** Nothing you save will load otherwise.
 2. **Back up whatever you touch.** RPL patches back themselves up. Nothing else does.
-3. **Cold start the game afterwards.** Resolved texture parts and loaded banks stay cached, so a
-   hot reload can serve the old bytes and make a good edit look broken.
-4. **Watch for duplicate copies.** If the same file exists somewhere else the game loads from, such
-   as an update folder or a DLC folder, editing one is a coin flip on which gets read.
+3. **Cold start the game afterwards.** Texture parts and loaded banks stay cached, so a hot reload
+   can serve the old bytes and make a good edit look broken.
+4. **Watch for duplicate copies.** If the same file exists somewhere else the game loads from, an
+   update folder or a DLC folder, editing one is a coin flip on which gets read.
 
 * * *
 
@@ -195,18 +217,16 @@ it needed was not on that machine, so the check never ran.
 
 ## 🧱 Known limits
 
-Worth knowing before you hit them.
-
-**Nothing here is proven on console.** Every check the program runs proves files are well-formed
-and round-trip correctly. None of it proves the console accepts the result. Treat a successful save
-as structurally sound rather than known working.
+**Nothing here is proven on console.** The checks prove files are well-formed and round-trip
+correctly, not that the console accepts them. Treat a successful save as structurally sound rather
+than known working.
 
 **`common.ff` cannot be saved.** The structural walk stops at a VehicleDef record it cannot resume
-past, which affects roughly 17 of the 155 stock zones. Your file is not damaged and same-size image
+past, affecting roughly 17 of the 155 stock zones. Your file is not damaged and same-size image
 replacement still works. Only growing the zone is refused.
 
-**Some pak entries carry no format or dimensions** anywhere findable. Those can be extracted raw
-but not previewed or replaced. They are shown rather than hidden.
+**Some pak entries carry no format or dimensions** anywhere findable. Those extract raw but cannot
+be previewed or replaced. They are shown rather than hidden.
 
 **The GSC compiler does not cover the whole language.** No `%anim` or `#animtree`, no
 `waittillmatch`, and vector constants compile to a longer but valid form. Scripts using those are
@@ -220,6 +240,17 @@ which this does not do for you.
 
 **PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
 is console-specific and the fastfile side is Wii U only.
+
+* * *
+
+## 🪟 Why Windows only
+
+The release is a single Windows executable. Three things tie to it: audio playback, drag and drop,
+and shell integration. Everything else, including fastfile parsing, GX2 detiling, the BCn and
+DSP-ADPCM codecs and the relinker, is plain Python.
+
+Run it from source on Linux or macOS and it works minus playback and drag and drop. There is no
+build for either, because Windows is the only platform I test on.
 
 * * *
 

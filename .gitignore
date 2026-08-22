@@ -1,0 +1,25 @@
+# Nothing here is source. Everything below is written by running the program, and
+# every entry is something that has actually turned up in a staged release tree.
+
+# Bytecode.
+__pycache__/
+*.py[cod]
+
+# ⛔ Settings and indexes carry ABSOLUTE PATHS off the machine that produced them,
+# including the user's home directory and Windows account name. This file has been
+# found staged for release once already. It must never ship.
+wiiu_ff_studio.json
+*.cache
+*.cache.v1bak
+
+# Crash and selftest logs, written next to the program as it runs.
+studio_errors.log
+*_selftest.log
+buildlog.txt
+builderr.txt
+fastbuild.log
+
+# PyInstaller output.
+build/
+dist/
+*.spec.bak

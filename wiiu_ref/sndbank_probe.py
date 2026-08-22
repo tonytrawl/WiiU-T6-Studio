@@ -55,9 +55,37 @@ ALIAS = 100
 RADVERB = 100
 DUCK = 76
 
+# --------------------------------------------------------------------------
+# ⭐⭐ THE PC AND CONSOLE SndAlias SIZES ARE NOT THE SAME NUMBER.
+#
+#   sizeof(SndAlias) = 96 on PC        (OAT ZoneCode, sndbank_t6_load_db.cpp:202
+#                                       LoadArray_SndAlias -> LoadWithFill(96*count),
+#                                       fills name@0 .. duckGroup@95)
+#   sizeof(SndAlias) = 100 on Wii U    (measured: genuine mp_raid walks BYTE-EXACT
+#                                       to the next asset at 100 and collapses at 96;
+#                                       12,477/12,477 genuine records carry 4
+#                                       trailing ZERO bytes at [96:100])
+#
+# `ALIAS` below is the CONSOLE size and was ALSO being used as the PC stride. On a
+# PC walk that strides 4 B too far per alias: mirage +47,763 B, raid +50,835,
+# zm_nuked +94,971, skate +47,842, common_mp +59,562 -- and the SndBank tail string
+# loop then reads an ALIAS NAME as the bank name. mp_mirage's first boot fast-failed
+# in FSOpenFile on `tspray_impact_small_rock.<8 binary bytes>.sabs` for exactly this.
+#
+# ⛔ IT WAS INVISIBLE TO EVERY STRUCTURAL GATE because sndbank_pc.parse_sndbank_pc
+# skips the trailing zero run to resync onto the next asset. THAT "opaque alignment
+# pad" NEVER EXISTED -- it was this deficit. A RESYNC MECHANISM CONVERTS A WALK
+# ERROR INTO A CONTENT ERROR AND HIDES IT FROM EVERYTHING THAT MEASURES STRUCTURE.
+#
+# Callers pass `alias_stride=PC_ALIAS` for a PC walk. The default stays ALIAS so
+# every existing caller is byte-identical.
+# --------------------------------------------------------------------------
+PC_ALIAS = 96
 
-def parse_sndbank(d, b, e, body=None):
+
+def parse_sndbank(d, b, e, body=None, alias_stride=None):
     body = body or BODY
+    alias_stride = alias_stride or ALIAS
 
     def u32(o):
         return struct.unpack(e + 'I', d[o:o+4])[0]
@@ -84,10 +112,10 @@ def parse_sndbank(d, b, e, body=None):
                 stats['strings'] += 1
             if head_p in PTRS:
                 ab = o
-                o += cnt * ALIAS
+                o += cnt * alias_stride
                 stats['aliases'] += cnt
                 for k in range(cnt):
-                    a = ab + k * ALIAS
+                    a = ab + k * alias_stride
                     for po in (a+0, a+8, a+12, a+20):   # name/sub/sec/file
                         if u32(po) in PTRS:
                             nul = d.index(b'\x00', o)
