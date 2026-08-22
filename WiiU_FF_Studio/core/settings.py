@@ -55,7 +55,24 @@ DEFAULTS = {
 # Anything not found this way is the user's to point at.
 
 TITLE_IDS = ('0005000e', '0005000c')       # Wii U title categories: update, then DLC
-GAME_ID = '1010cf00'                        # Black Ops 2
+
+# ⚠ THE LOW TITLE ID IS REGION-SPECIFIC, AND A SINGLE VALUE FINDS ONE REGION.
+# The high half above is the title CATEGORY; this half identifies the game AND its region. This
+# was `GAME_ID = '1010cf00'`, which is NTSC-U only, so a PAL install was never discovered: no
+# names, no formats, no shadow warnings, and nothing on screen saying why. Regions we know:
+GAME_IDS = (
+    '1010cf00',      # NTSC-U  (US)
+    '10113400',      # PAL     (UK / EU / FR)
+)
+# ⭐ A REGION WE DO NOT KNOW IS STILL FOUND, WITHOUT GUESSING AT ITS NUMBER. The Japanese id is
+# unknown to us, so rather than invent one, any OTHER title directory sitting beside the known
+# ones is accepted when it carries a T6 fingerprint (see _looks_like_t6_content). That covers
+# Japan and any future re-release for free. Adding an id above is then an optimisation, not a
+# fix. ⛔ Do NOT relax the fingerprint to plain looks_like_content_dir(): a neighbouring Wii U
+# Call of Duty also ships .ff zones, and harvesting one would raise false "this texture also
+# lives in another pak" warnings against a pak this game never loads.
+T6_PAK_PREFIX = 'base_split'                    # base_split0.ipak .. base_split8.ipak
+T6_ZONE_PREFIXES = ('patch_', 'common_', 'core_')
 
 
 def looks_like_content_dir(path):
@@ -113,14 +130,66 @@ def _cemu_data_roots():
     return [r for r in roots if r and os.path.isdir(r)]
 
 
+def _looks_like_t6_content(path):
+    """True when a directory holds Black Ops II specifically, not merely 'a game'.
+
+    Used ONLY for title ids we do not recognise, where the alternative is guessing at a region's
+    number or missing that region entirely. `base_split*.ipak` is the strongest marker: every
+    region ships that set, and no other Wii U title uses those names. The zone-name fallback
+    covers a content folder whose paks sit elsewhere.
+    """
+    try:
+        if not os.path.isdir(path):
+            return False
+        names = os.listdir(path)
+    except OSError:
+        return False
+    for n in names:
+        low = n.lower()
+        if low.startswith(T6_PAK_PREFIX) and low.endswith('.ipak'):
+            return True
+    # Zones live under a language folder (english/, french/, japanese/, ...), so look one level
+    # down as well as here. The language name is never assumed -- that is the whole point.
+    for sub in [''] + [s for s in names if os.path.isdir(os.path.join(path, s))]:
+        d = os.path.join(path, sub) if sub else path
+        try:
+            entries = os.listdir(d)
+        except OSError:
+            continue
+        for f in entries:
+            low = f.lower()
+            if low.endswith('.ff') and low.startswith(T6_ZONE_PREFIXES):
+                return True
+    return False
+
+
 def _cemu_content_dirs():
-    """Cemu's per-title content folders for this game, on whichever platform we are running."""
+    """Cemu's per-title content folders for this game, on whichever platform we are running.
+
+    Known regions first (cheap, exact), then any unrecognised sibling title that carries the T6
+    fingerprint. See the GAME_IDS note above for why the second pass exists.
+    """
     out = []
+    known = set(GAME_IDS)
     for root in _cemu_data_roots():
         for tid in TITLE_IDS:
-            p = os.path.join(root, 'mlc01', 'usr', 'title', tid, GAME_ID, 'content')
-            if os.path.isdir(p):
-                out.append(p)
+            base = os.path.join(root, 'mlc01', 'usr', 'title', tid)
+            if not os.path.isdir(base):
+                continue
+            for gid in GAME_IDS:
+                p = os.path.join(base, gid, 'content')
+                if os.path.isdir(p) and p not in out:
+                    out.append(p)
+            try:
+                siblings = sorted(os.listdir(base))
+            except OSError:
+                continue
+            for gid in siblings:
+                if gid.lower() in known:
+                    continue
+                p = os.path.join(base, gid, 'content')
+                if p not in out and _looks_like_t6_content(p):
+                    out.append(p)
     return out
 
 

@@ -254,6 +254,22 @@ build for either, because Windows is the only platform I test on.
 
 * * *
 
+## 👥 Project contributors
+
+**DarkexNrkm |-/** Provided core Wii U subsystem and tooling expertise, set the overall project
+trajectory, and conducted key research.
+
+**Priception** Established the testing and QA methodology using insights from past work on Halo
+projects, implemented HD texture modifications, and led key research on future usage for end users.
+
+**UndeadFrankie** Research and texture consultant. Shared insights from similar Xbox platform
+conversion projects, helping analyse cross-platform texture handling to inform the Wii U shader
+pipeline.
+
+**ThePsych** Contributed early research and foundational work on ipak file conversions.
+
+* * *
+
 ## 🧩 OpenAssetTools
 
 Two files ship with this program from [OpenAssetTools](https://github.com/Laupetin/OpenAssetTools)

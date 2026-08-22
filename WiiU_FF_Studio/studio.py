@@ -1877,6 +1877,51 @@ def _run_selftest(quiet=False):
     except Exception as ex:
         rows.append(('FAIL', 'W16', '%s: %s' % (type(ex).__name__, ex)))
 
+    # W17 Cemu discovery must find EVERY region, not just the one this machine happens to run.
+    # ⚠ The low title id encodes the region. Discovery hardcoded `1010cf00` (NTSC-U), so a PAL
+    # install (`10113400`) was silently invisible: no names, no formats, no shadow warnings, and
+    # nothing on screen explaining it. Reported by a user, not by any check we had.
+    # ⛔ THE LAST ARM IS THE LOAD-BEARING ONE. Finding more folders is easy -- accept everything
+    # and every arm above passes. A neighbouring Wii U Call of Duty also ships .ff zones, and
+    # harvesting one would raise false "also lives in another pak" warnings against a pak this
+    # game never loads. The negative arm is what separates the fix from a blanket accept.
+    try:
+        import shutil
+        import tempfile
+        tmp = tempfile.mkdtemp()
+        try:
+            def _mk(gid, marker):
+                d = os.path.join(tmp, 'mlc01', 'usr', 'title', '0005000e', gid, 'content')
+                os.makedirs(d, exist_ok=True)
+                open(os.path.join(d, marker), 'wb').close()
+                return d
+
+            us = _mk('1010cf00', 'base_split0.ipak')      # known, NTSC-U
+            pal = _mk('10113400', 'base_split0.ipak')     # known, PAL -- the reported bug
+            jp = _mk('10119c00', 'base_split3.ipak')      # id we do NOT know: found by shape
+            other = _mk('deadbeef', 'someothergame.ff')   # a different Wii U title: must NOT match
+
+            real_roots = settings._cemu_data_roots
+            settings._cemu_data_roots = lambda: [tmp]
+            try:
+                found = [os.path.abspath(p) for p in settings._cemu_content_dirs()]
+            finally:
+                settings._cemu_data_roots = real_roots
+
+            arms = [('NTSC-U 1010cf00', os.path.abspath(us) in found, True),
+                    ('PAL 10113400', os.path.abspath(pal) in found, True),
+                    ('unknown region by fingerprint', os.path.abspath(jp) in found, True),
+                    ('non-T6 title rejected', os.path.abspath(other) not in found, True)]
+            bad = [n for n, got, want in arms if got != want]
+            add('W17', not bad,
+                '4 region arms: US, PAL, unknown-by-fingerprint, and a non-T6 title rejected'
+                if not bad else 'arm(s) wrong: %s (found %d dir(s))' % (', '.join(bad),
+                                                                       len(found)))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    except Exception as ex:
+        add('W17', False, '%s: %s' % (type(ex).__name__, ex))
+
     failed = sum(1 for s, _g, _d in rows if s == 'FAIL')
     text = '%s %s shell gate battery\nfrozen: %s\n\n' % (
         APP_TITLE, APP_VERSION, bool(getattr(sys, 'frozen', False)))
