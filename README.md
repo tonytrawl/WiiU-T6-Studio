@@ -30,7 +30,7 @@ HQ finds your supported Black Ops II game and official update, detects its regio
 
 ---
 
-## New in the next Unbound content package
+## New in Unbound
 
 ### Theater Mode
 
