@@ -1,162 +1,307 @@
 <div align="center">
 
-# Black Ops 2 Unbound HQ
+[![WII U T6 Studio](icon.png)](https://github.com/tonytrawl/WiiU-T6-Studio)
 
-**Black Ops 2 Unbound HQ** is a Wii U homebrew app for keeping Black Ops II Unbound current, managing local mods, and installing curated Aroma plugins.
+# WII U T6 Studio
 
-<br>
+**Fastfiles, texture paks, sound banks and the engine itself, in one window.**
 
-[![Latest release](https://img.shields.io/github/v/release/tonytrawl/bo2-unbound?style=for-the-badge&logo=github&logoColor=17130a&label=RELEASE&labelColor=17130a&color=e8a33d)](https://github.com/tonytrawl/bo2-unbound/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/tonytrawl/bo2-unbound/total?style=for-the-badge&label=DOWNLOADS&labelColor=17130a&color=4d8fd6)](https://github.com/tonytrawl/bo2-unbound/releases)
+Edit Call of Duty: Black Ops II on Wii U without a pile of single-purpose tools.
+
+[![Latest release](https://img.shields.io/github/v/release/tonytrawl/WiiU-T6-Studio?style=for-the-badge&logo=github&logoColor=17130a&label=RELEASE&labelColor=17130a&color=e8a33d)](https://github.com/tonytrawl/WiiU-T6-Studio/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/tonytrawl/WiiU-T6-Studio/total?style=for-the-badge&label=DOWNLOADS&labelColor=17130a&color=4d8fd6)](https://github.com/tonytrawl/WiiU-T6-Studio/releases)
+[![Platform](https://img.shields.io/badge/PLATFORM-WINDOWS-7cb342?style=for-the-badge&logo=windows&logoColor=eef3f8&labelColor=17130a)](#-why-windows-only)
+[![License](https://img.shields.io/badge/LICENSE-GPL%20v3.0-b07cd6?style=for-the-badge&labelColor=17130a)](LICENSE)
+
 [![Buy me a coffee](https://img.shields.io/badge/SUPPORT%20MY%20WORK-BUY%20ME%20A%20COFFEE%20%E2%98%95-e8a33d?style=for-the-badge&labelColor=17130a&logo=buymeacoffee&logoColor=17130a)](https://buymeacoffee.com/tonytrawl)
 
 </div>
 
----
+* * *
 
-HQ finds your supported Black Ops II game and official update, detects its region, language, and internal/USB storage location, and offers the right Unbound files. It can update the HQ app itself, apply full or patch game-content releases, launch the game, and manage mods from one place.
+Black Ops II on Wii U keeps its content in four containers. This tool edits, authors and grows all
+of them.
+
+## What you can do with it
+
+* Swap textures in texture paks and inside fastfiles
+* Edit GSC and CSC scripts, with a decompiler and an editable assembly view
+* Compile Lua and HKS from source
+* Edit text, cfg and csv files, and make them bigger than they were
+* Add new scripts and raw files to a zone
+* Replace sounds, extract them to WAV, and add or delete entries
+* Preview models in 3D
+* Patch the engine so edited files will actually load
+* Change the game's internal render resolution
+* Search every pak and zone by texture name to find where something lives
+* Replace hundreds of textures in one pass from a folder
+
+It opens `.ff` fastfiles, `.ipak` texture paks, `.sabs` / `.sabl` sound banks and the engine's own
+`.rpl` / `.rpx` modules. The window changes to suit whatever you opened, and several can be open at
+once as tabs.
+
+* * *
+
+## ⚠️ Read this first
+
+Two things to set up before your first edit. Skip either one and your work will not load, or will
+load without names and warnings.
+
+### 1. Patch the signature check
+
+A fastfile written by this tool, or by any tool, has **no valid RSA signature**. Nobody outside
+Treyarch has the key. An unpatched console checks that signature and refuses the file, which shows
+up as a crash or a hang the moment the zone is requested. It happens even when you save a zone with
+no changes at all.
+
+1. Open the **RPL** tab.
+2. Open `t6_cafef_rpl.rpl`, apply **Fastfile signature check**.
+3. Open `t6mp_cafef_rpl.rpl`, apply the same patch.
+
+Patch **both**. `t6_cafef_rpl` loads first and carries its own copy of the same engine code. The
+tool checks on startup and tells you if it looks unpatched. Your original is copied to
+`<name>.stock` before the first edit and that backup is never overwritten.
+
+### 2. Point the tool at your game folders
+
+Texture entries store a numeric hash and no name. Readable names, formats and dimensions come from
+your own paks and zones, and so does the warning that the texture you are editing also exists in a
+pak that loads earlier. Without a game folder you get hex ids and no warnings.
+
+Click **Game folders** in the toolbar and add the `content` folder of your Wii U install, the one
+holding the `.ipak` and `.ff` files. It looks like this:
+
+```
+content/
+  base_split0.ipak … base_split8.ipak
+  mp_nuketown_2020.ipak
+  english/
+    common_patch_mp.ff
+    patch_mp.ff
+```
+
+**Cemu installs are found automatically.** The tool checks Cemu's own data folder for both title
+categories:
+
+| | Path |
+|---|---|
+| Update | `<Cemu>/mlc01/usr/title/0005000e/1010cf00/content` |
+| DLC | `<Cemu>/mlc01/usr/title/0005000c/1010cf00/content` |
+
+`<Cemu>` is `%APPDATA%\Cemu` on Windows, `~/Library/Application Support/Cemu` on macOS, and
+`$XDG_DATA_HOME/Cemu` or `~/.cemu` on Linux. A Wine or Proton prefix is checked too.
+
+Three other things are searched without any configuration:
+
+* The folder you opened a file from, and its parent.
+* The folder the program itself sits in, or a `content` folder inside it. Drop the exe into your
+  game folder and it just works.
+* `WIIU_CONTENT_DIR`, if you set it. Separate multiple paths the way your OS separates `PATH`.
+
+The **Game folders** window lists everything currently being searched, marked `[configured]` or
+`[auto]`. Settings are stored in `wiiu_ff_studio.json` next to the program.
+
+> The disc image is not searched and should not be edited. Maps belong in the DLC folder, patched
+> zones in the update folder.
+
+* * *
+
+## 🗂️ Fastfiles (`.ff`)
+
+Browse every asset in a zone.
+
+**Scripts.** GSC and CSC get a disassembly listing plus an editable assembly view, with or without
+the source. The decompiler lands around 98% on retail bytecode. Lua and HKS get the same treatment
+and compile from source. Text, cfg and csv files are edited directly.
+
+**Growing a zone.** Scripts and raw files can get bigger. The zone is rebuilt and every pointer
+re-pointed, then re-walked. **A file whose walk broke is refused rather than written.**
+
+**Models.** A software preview with geometry and shading, enough to identify something but not to
+judge how it looks in game.
+
+**Inline textures.** Zones carry their own textures, often hundreds, embedded in materials and FX
+rather than in the asset list. Open them with the **Textures** button to browse, export and
+replace. Unlike pak textures these can change resolution, because the record is rewritten with the
+pixels.
+
+Feed one a larger image and you are offered the original size or the largest that still fits. That
+ceiling is measured per texture against the padding after it, so it is whatever the space allows
+rather than a fixed multiple. Sometimes that is double, sometimes 1.6x. Where nothing bigger fits
+you get the original size only, and an image too large for the space is refused.
+
+## 🖼️ Texture paks (`.ipak`)
+
+Preview, extract and replace streamed textures. Use the gallery view to browse visually instead of
+by name.
+
+Replacement re-encodes into the entry's existing format, because the zone tells the GPU how to read
+those bytes. It covers **every part** of an image, not just the one you clicked. A streamed texture
+is split across up to three parts holding different mip tiers, and doing one leaves the rest
+showing the original.
+
+> The console binds each part from the **first** pak it finds it in and never looks again. If a
+> base-game pak holds the same texture and loads earlier, your edit is never read: the save
+> succeeds, the game shows the old image, and nothing reports a problem. The tool warns you before
+> you spend the edit, and **Find asset** shows every pak holding each part.
+
+## 🔊 Sound banks (`.sabs` / `.sabl`)
+
+Browse entries, see the waveform, play them back, extract to WAV, replace, add and delete.
+
+Untouched entries are written back byte for byte including their original checksums. Retail ships
+entries whose stored checksum does not recompute, and "correcting" them is what broke banks in
+earlier attempts.
+
+Audio is DSP-ADPCM stored at 2/3 of the nominal rate, 48000 down to 32000, while the frame count
+keeps the original figure. Multi-channel payloads are block-interleaved at 64 KB in streamed banks
+and flat in loaded ones, with nothing in the file to tell you which. Only the extension.
+
+## ⚙️ Engine RPLs (`.rpl` / `.rpx`)
+
+Three patches: the fastfile signature check, the DLC load gate, and the internal render resolution
+with eleven presets from 640x480 up, or type your own.
+
+Everything is located by symbol name and instruction pattern rather than by address. The base, MP
+and update builds put the same code in different places. The resolution site sits at `0x0297B418`
+in one and `0x027FA17C` in another, so a patcher pinned to an address quietly does nothing on the
+wrong file.
+
+* * *
+
+## 🔍 Finding things
+
+**Find asset** (`Ctrl+F`) tells you which pak *or fastfile* holds what you are after, including
+textures that live inline in a zone rather than in any pak. Type part of a name or paste a raw
+hash. It reads an index rather than decoding anything, so a search across tens of thousands of keys
+returns instantly.
+
+**Bulk replace** points the same machinery at a folder:
+
+1. Name your images the way the game names them, which is what a PC texture mod already does.
+2. Drag the folder onto the window, or use **Bulk replace**.
+3. Review the list. Nothing is written until you confirm.
+
+It finds every pak and zone carrying each image and rewrites them all, grouped by destination file,
+so twenty textures living in one pak open and save that pak once. Everything touched is backed up
+first, and anything it cannot match is reported while the rest carries on.
+
+Accepts `.png` `.dds` `.tga` `.bmp` `.jpg` `.gif` `.tif` `.webp`. DDS is covered in full (DXT1-5,
+BC4/5/6H/7, DX10), because that is what PC mods ship.
+
+* * *
+
+## 📋 Before you edit
+
+1. **Patch the signature check.** Nothing you save will load otherwise.
+2. **Back up whatever you touch.** RPL patches back themselves up. Nothing else does.
+3. **Cold start the game afterwards.** Texture parts and loaded banks stay cached, so a hot reload
+   can serve the old bytes and make a good edit look broken.
+4. **Watch for duplicate copies.** If the same file exists somewhere else the game loads from, an
+   update folder or a DLC folder, editing one is a coin flip on which gets read.
+
+* * *
+
+## 🧪 Checking a build
+
+Every copy can test itself:
+
+```
+WiiU_T6_Studio.exe --selftest
+```
+
+Read the counts rather than the colour. A gate reported `SKIP` is **not** a pass. It means the data
+it needed was not on that machine, so the check never ran.
+
+* * *
+
+## 🧱 Known limits
+
+**Nothing here is proven on console.** The checks prove files are well-formed and round-trip
+correctly, not that the console accepts them. Treat a successful save as structurally sound rather
+than known working.
+
+**`common.ff` cannot be saved.** The structural walk stops at a VehicleDef record it cannot resume
+past, affecting roughly 17 of the 155 stock zones. Your file is not damaged and same-size image
+replacement still works. Only growing the zone is refused.
+
+**Some pak entries carry no format or dimensions** anywhere findable. Those extract raw but cannot
+be previewed or replaced. They are shown rather than hidden.
+
+**The GSC compiler does not cover the whole language.** No `%anim` or `#animtree`, no
+`waittillmatch`, and vector constants compile to a longer but valid form. Scripts using those are
+refused rather than silently mis-compiled. A single compiled script caps at 65,535 bytes.
+
+**`KeyValuePairs` and `SoundPatch` assets are read-only.** The field that looks like a length is
+actually a count, so resizing them desynchronises the zone.
+
+**Added assets and textures are inert.** Nothing references them until you wire them up zone-side,
+which this does not do for you.
+
+**PC files are not supported.** The pak reader recognises little-endian paks, but the image decoder
+is console-specific and the fastfile side is Wii U only.
+
+* * *
+
+## 🪟 Why Windows only
+
+The release is a single Windows executable. Three things tie to it: audio playback, drag and drop,
+and shell integration. Everything else, including fastfile parsing, GX2 detiling, the BCn and
+DSP-ADPCM codecs and the relinker, is plain Python.
+
+Run it from source on Linux or macOS and it works minus playback and drag and drop. There is no
+build for either, because Windows is the only platform I test on.
+
+* * *
+
+## 👥 Project contributors
+
+**DarkexNrkm |-/** Provided core Wii U subsystem and tooling expertise, set the overall project
+trajectory, and conducted key research.
+
+**Priception** Established the testing and QA methodology using insights from past work on Halo
+projects, implemented HD texture modifications, and led key research on future usage for end users.
+
+**UndeadFrankie** Research and texture consultant. Shared insights from similar Xbox platform
+conversion projects, helping analyse cross-platform texture handling to inform the Wii U shader
+pipeline.
+
+**ThePsych** Contributed early research and foundational work on ipak file conversions.
+
+* * *
+
+## 🧩 OpenAssetTools
+
+Two files ship with this program from [OpenAssetTools](https://github.com/Laupetin/OpenAssetTools)
+by Laupetin, at commit `85aa741`:
+
+- `T6_Assets.h`, the layout of every T6 asset structure
+- `ZoneCode/Game/T6/XAssets`, how those structures are written into a zone
+
+They are read as reference data and are what makes walking a fastfile possible. No OpenAssetTools
+code is compiled into this program.
+
+Everything else, including all Wii U support, is my own work.
+
+* * *
+
+## 📄 Licence
+
+GPL-3.0, full text in [`LICENSE`](LICENSE). This program includes GPL-3.0 files from
+OpenAssetTools, whose licence ships at
+[`licenses/OpenAssetTools-LICENSE.txt`](licenses/OpenAssetTools-LICENSE.txt).
+
+Source for every release is in this repository at the matching tag.
+
+Extracting the contents of game files does not grant you any rights to them.
+
+* * *
 
 <div align="center">
 
-**Guides:** [Install HQ](#installing-hq) · [Use local mods](#local-mods-and-mod-manager) · [Create mods with the Unbound T6 Mod Tool](README-T6_mod_Tool.md)
+Built by **[tonytrawl](https://github.com/tonytrawl)**
+
+Not affiliated with, endorsed by, or supported by Activision or Treyarch.<br>
+For use with content you already own.
 
 </div>
-
-> [!IMPORTANT]
-> Install the newest **official** Black Ops II update first: **v128 for USA and Europe**, or **v96 for Japan**. HQ does not supply the official game update or DLC.
-
-> [!WARNING]
-> Unbound is still in beta and changes files in your installed Black Ops II update. Back up anything you cannot easily replace, and do not interrupt an installation.
-
----
-
-## New in Unbound
-
-### Theater Mode
-
-Local recording and playback is back into the game's familiar **Theater → Select Film** flow. Record supported hosted matches, browse and replay completed films, save edited clips, and remove individual recordings. Multiplayer and Zombies films stay separated. This is a local film library, not cloud sharing or video export.
-
-### Performance and mixed lobbies
-
-Project comparison tests measured approximately **11% higher FPS**, **12% lower overall CPU usage**, and **28% lower usage on the busiest CPU core** with the new game-code optimizations. These are approximate measured results, not a guaranteed improvement in every map, mode, or console setup.
-
-Host and client side **Lua/LUI compatibility fixes** address the different Lua version rejection that could stop a player without Unbound from joining an Unbound-hosted lobby. Mixed lobbies still need compatible maps and gameplay assets on every player's console; this fix does not supply missing custom content.
-
----
-
-## What HQ can do
-
-- Detect supported USA, European, and Japanese Black Ops II titles, the selected language, and whether the official update is on internal storage or USB.
-- Check for a newer HQ app before checking game content. A verified app update returns you to the Wii U Menu so you can relaunch it.
-- Launch a supported installed or disc copy of Black Ops II. A missing game or update is reported without crashing the app.
-- Manage SD and console mod copies together and browse the curated **Plugin Workshop**.
-
-HQ installs Unbound game content into the registered **update title**, under `update/code/` and `update/content/`. Files staged in `update/content/@language/` go to the detected English, French, Spanish, Italian, German, or Japanese folder. HQ does **not** create or modify AOC/DLC titles or their XML files.
-
-The Workshop currently offers Aroma plugins. Community mod uploads, ratings, and comments are not enabled yet.
-
----
-
-## Requirements
-
-- A Wii U running the [Aroma environment](https://aroma.foryour.cafe/) and a legally owned Wii U copy of **Call of Duty: Black Ops II**.
-- The newest official Black Ops II update: **v128** in USA/Europe or **v96** in Japan.
-- An SD card accessible from Aroma, Internet access for online updates, and sufficient free space on both the SD card and the device holding the game update.
-- Aroma's existing `ContentRedirectionModule.wms` if you want to load mods from SD with Unbound Mod Link. HQ does not replace that shared module.
-
-Install the official update from a legitimate source and launch the unmodified game once to confirm it works before installing Unbound.
-
----
-
-## Installing HQ
-
-1. Open the [official Releases page](https://github.com/tonytrawl/bo2-unbound/releases). Download the **HQ application** `BO2-Unbound-HQ.wuhb` or its SD-card package. A file named `unbound-universal-...zip` is a game-content package, **not** the app.
-2. If you downloaded the WUHB alone, copy it to:
-
-   ```text
-   sd:/wiiu/apps/BO2-Unbound-HQ/BO2-Unbound-HQ.wuhb
-   ```
-
-   If you downloaded an SD-card package, extract it to the SD-card root and confirm the WUHB ends up at that same path.
-3. Insert the SD card, start the Wii U in Aroma, and open **Black Ops 2 Unbound HQ**.
-
-Only the `.wuhb` is required for normal Aroma use; development `.elf` and `.rpx` files do not belong on the SD card. The first self-updating HQ build must be installed manually. Later HQ revisions can update the app for you. After HQ updates itself, relaunch it from the Wii U Menu. After installing or updating an Aroma plugin, fully restart the console/Aroma environment so its new code loads.
-
-On each run HQ checks the shared `releases-chain-v2.txt` feed, locates the game and official update, and compares `update/content/update.txt` with the available Unbound releases. It asks before downloading game content. A missing version marker means a first install; HQ writes the marker only after a package finishes successfully. Do not manually create or edit `update.txt` to bypass the installer.
-
-Do not power off, remove the SD card, disconnect USB storage, or exit HQ while it is downloading or installing.
-
----
-
-## Plugin Workshop
-
-Open **Workshop** from HQ to see the curated plugin listings. The page opens immediately from saved listings, or HQ's included listings if none have been saved. Press **X** (**1** on a Wii Remote) to refresh the catalog. Open a plugin's page to check its current publisher release and the files installed on your SD card. A saved listing is useful offline, but does not prove that its release is current.
-
-### Unbound Mod Link
-
-Unbound Mod Link lets Black Ops II load manifested mods directly from `sd:/unbound/content/mods` at runtime. You can keep mod folders on the SD card instead of repeatedly copying them to the game's internal or USB storage. It overlays matching files rather than replacing the entire game content folder. The switch in Mod Manager controls whether linking is active; restart the game after changing it.
-
-HQ automatically checks for verified Mod Link plugin updates using the same shared feed it already downloads for HQ and game content. The runtime plugin itself makes **no** network requests and does not check for game-content updates while you play. Its package contains only the Unbound plugin; it does not overwrite Aroma's shared content-redirection module. If notifications are available, it can briefly show when linking succeeds.
-
-### GamePad Mic Redirect
-
-GamePad Mic Redirect is an optional, experimental plugin that routes the Wii U GamePad's built-in microphone to compatible games that normally expect headset voice input. Its current release includes **mute** and **push-to-talk** controls. Read its Workshop page and [publisher notes](https://github.com/tonytrawl/gamepad_mic_redirect) before installing.
-
-Its **Auto-Update** setting starts **OFF**. When OFF, HQ does not contact the microphone plugin's publisher feed during startup; opening its Workshop page still lets you check manually. After HQ installs or explicitly adopts the plugin, you may turn Auto-Update ON from that page. HQ then checks for verified newer releases at startup. An existing manual plugin file is never silently taken over: HQ requires a **Replace & Manage** confirmation. Plugins added only through future online catalog entries can be checked from their pages, but do not offer startup Auto-Update yet.
-
-No Workshop plugin package writes into the Black Ops II game-update folders.
-
----
-
-## Local mods and Mod Manager
-
-Put each local mod in its own folder at `sd:/unbound/content/mods/<mod-folder>/`, with a `modload.txt` file. For example:
-
-```ini
-name=Diner Survival
-description=A custom survival experience for Diner.
-author=Example Author
-```
-
-The [Unbound T6 Mod Tool guide](README-T6_mod_Tool.md) explains how to create, edit, and validate loader-ready mods on Windows. Copy the finished mod folder to the SD path above. HQ can also offer to migrate older `sd:/unbound/mods` or `sd:/unbound/mod` folders; it does not silently overwrite a conflicting folder name.
-
-Mod Manager shows SD and console copies in one list, with each mod's name, author, and description. Press **Minus** there to toggle Unbound Mod Link. The ON/OFF bubble shows its status, not an extra button. When matching folders exist in both places, HQ warns that the SD version takes priority while Mod Link is enabled, but console-only files can still appear in the merged view. You can review and remove the redundant console copy from Mod Manager.
-
-Manual SD-to-console and console-to-SD copying remains available for compatibility, but Mod Link is the recommended everyday setup. Follow the on-screen confirmations carefully when copying or deleting. A console-to-SD move verifies the new copy before offering to remove the original. Deleting a console copy does not delete the SD copy.
-
----
-
-## Controls
-
-Touch input is intentionally disabled. The Wii U GamePad, Wii U Pro Controller, Classic Controller/Classic Controller Pro, and Wii Remote can navigate HQ. The footer shows what each button does on the current screen.
-
-| Control | Action |
-|---|---|
-| D-pad | Navigate cards and lists; scroll long text with Up/Down |
-| A | Select or confirm |
-| B | Back or cancel |
-| Minus in Mod Manager | Turn Mod Link on or off |
-| X, or 1 on Wii Remote | Refresh Workshop or manage/delete a selected mod when shown in the footer |
-| Plus | Exit HQ |
-
----
-
-## Troubleshooting
-
-- **Official update not found:** Check for v128 (USA/Europe) or v96 (Japan), confirm the game and update match regions, and connect USB storage before starting HQ if the update is on USB.
-- **No Unbound version found:** HQ expects `update/content/update.txt`. If it is missing, HQ should offer a full install; do not create the file yourself.
-- **Network or HTTP error:** Test the Wii U Internet connection and check GitHub on another device. A failed online check is not the same as being up to date; saved news and Workshop listings may still appear.
-- **Checksum or size mismatch:** Do not bypass it. Retry, then report a repeat failure with the exact error.
-- **Not enough free space:** Free space on the device HQ names. Both the SD download cache and the actual game-update storage need room.
-- **Missing BSP or fastfile:** Verify that the official update is current, installation finished without errors, and the release has all required map files under the update tree rather than an AOC path.
-- **Mod Link does not load an SD mod:** Check that the mod is under `sd:/unbound/content/mods/<mod-folder>/`, has a readable `modload.txt`, Mod Link is ON, and Aroma's content-redirection module is present. Restart the game after changing the switch; restart the console/Aroma after a plugin install or update.
-
-For a bug report, include the HQ version and revision, game region, official update version, internal/USB location, language, and exact on-screen message.
-
----
-
-## Legal notice
-
-Black Ops 2 Unbound HQ is an unofficial, fan-made homebrew project. It is not affiliated with, endorsed by, or sponsored by Activision, Treyarch, Nintendo, Pretendo Network, or any of their subsidiaries.
-
-Call of Duty, Black Ops II, Wii U, and related names and assets belong to their respective owners. You are responsible for using legally obtained game software and content. Do not distribute copyrighted game files, official DLC, encryption keys, tickets, or other protected material through this project. Use this software at your own risk.
